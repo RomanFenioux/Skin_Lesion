@@ -5,8 +5,8 @@ close all
 % set and ground truth data, etc...
 
 imNum = '13'; 
-pathTraining = '../data/ISIC-2017_Training_sample/';
-pathTruth = '../data/ISIC-2017_GroundTruth_sample/';
+pathTraining = 'data/ISIC-2017_Training_sample/';
+pathTruth = 'data/ISIC-2017_GroundTruth_sample/';
 
 imName= strcat('ISIC_00000', imNum, '.jpg');
 truthName= strcat('ISIC_00000', imNum, '_segmentation.png');
