@@ -1,5 +1,6 @@
 function [ k_optim, eta_optim ] = otsu( I )
 %   OTSU calculates the optimal histogram threshold following Otsu's paper
+%   [ k_optim, eta_optim ] = otsu( I )
 %   k_optim is the optimal threshold computed from the image I
 %   eta_optim is the separability measure at k_optim in otsu's method
     
