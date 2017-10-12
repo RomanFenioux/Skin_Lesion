@@ -9,17 +9,25 @@ function [ k_optim, eta_optim ] = otsu( I )
     nb_px = size(I(:),1);
     histo=hist(I(:),255)/nb_px;
     
+    % mu_t is the mean value of the entire histogram
     i=(1:255);
     mu_t = sum(i.*histo); 
     MU_T = ones(1,255)*mu_t;
-    sigma_T2 = sum((i-MU_T).^2*histo(:)); % total variance (squared)
+
+    % total variance (squared)
+    sigma_T2 = sum((i-MU_T).^2*histo(:)); 
     
-    % we search the maximum value of sigma_B^2 sequentially
-    
+    % sigma_B2 is the inter-class variance : sigmaB^2 = w0*w1*(mu1-mu0)^2 with w0 and 
+    % w1 the probability of occurence of the class 1 and 2, mu1 and mu2 are the mean 
+    % values of the two clusters
+
+    % we search the maximum value of sigma_B^2 sequentially : maximizing sigma_B^2 is 
+    % equivalent to maximizing the separability measure eta, since 
+    % eta=(sigmaB)^2/(sigmaT)^2 and sigmaT does not depend on k.
     k_optim = 0;
-    sigma_B2_max = 0; % max value of the inter-class variance (squared)
+    sigma_B2_max = 0; 
     for k=1:255
-        % we compute the inter-class variance : sigmaB^2 = w0*w1*(mu1-mu0)^2
+        % we compute the inter-class variance : 
         % with w0=wk, w1=1-wk, mu0=muk/wk, mu1=(muT-muk)/(1-wk).
         w_k = sum(histo(1:k));
         mu_k = sum(i(1:k).*histo(1:k));
@@ -31,6 +39,9 @@ function [ k_optim, eta_optim ] = otsu( I )
         end
     end
     
+    % we calculate eta
+    % it can be useful for the evaluation of the quality of the segmentation (if eta is
+    % small, it is likely that thresholding methods won't give good results)
     eta_optim = sigma_B2 / sigma_T2;
         
     

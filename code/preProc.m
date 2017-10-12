@@ -6,7 +6,9 @@ function [ Ipreproc ] = preProc( I, channel )
 %   'b' or 'blue' to select the blue channel in RGB space
 %   'X' ***** TO BE IMPLEMENTED **** the X channel in CIE-XYZ space
 %
-%   this function may dispapear or require extra parameters in the future.
+%
+%
+%   NOTE :this function may dispapear or require extra parameters in the future
 %   Different segmentation methods will need different preprocessing.
 %   For now preProc merely removes hair, using Dullrazor method and changes
 %   the color channel.

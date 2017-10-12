@@ -1,26 +1,32 @@
 clear all
 close all
 
-% choose the number of the image (2 last digits), the paths of the training
-% set and ground truth data, etc...
+% choose the number of the image (3 last digits)
+imNum = '002'; 
 
-imNum = '02'; 
+% choose the paths of the training images and ground truth segmentation masks
 pathTraining = '../data/ISIC-2017_Training_sample/';
 pathTruth = '../data/ISIC-2017_GroundTruth_sample/';
 
-imName= strcat('ISIC_00000', imNum, '.jpg');
-truthName= strcat('ISIC_00000', imNum, '_segmentation.png');
+imName= strcat('ISIC_0000', imNum, '.jpg');
+truthName= strcat('ISIC_0000', imNum, '_segmentation.png');
+
+%% Segmentation of an image
 
 I = double(imread(strcat(pathTraining, imName)));
 
-% pre-processing : selecting the color channel and hair removal.
+% pre-processing the image to change color space and remove hair
 channel='blue';
 I = preProc(I,channel);
 
-% compute the threshold using otsu's paper
-[threshold eta] = otsu(I); 
+% compute the threshold using Otsu's paper : threshold is the optimal threshold.
+% eta is the separability measure used by Otsu to choose the threshold (see otsu.m), it 
+% can be used to evaluate the quality of the thresholding 
+[threshold, eta] = otsu(I); 
 
 I_seuil = double(I < threshold);
+
+%% Evaluation by displaying the results and the corresponding ground truth mask
 
 T = double(imread(strcat(pathTruth, truthName)));
 
