@@ -2,7 +2,7 @@ clear all
 close all
 
 % choose the number of the image (3 last digits)
-imNum = '002'; 
+imNum = '174'; 
 
 % choose the paths of the training images and ground truth segmentation masks
 pathTraining = '../data/ISIC-2017_Training_sample/';
@@ -13,10 +13,10 @@ truthName= strcat('ISIC_0000', imNum, '_segmentation.png');
 
 %% Segmentation of an image
 
-I = double(imread(strcat(pathTraining, imName)));
+I = double(imread(strcat(pathTraining, imName)))/255;
 
 % pre-processing the image to change color space and remove hair
-channel='blue';
+channel='X';
 I = preProc(I,channel);
 
 % compute the threshold using Otsu's paper : threshold is the optimal threshold.
@@ -28,20 +28,8 @@ I_seuil = double(I < threshold);
 
 %% Evaluation by displaying the results and the corresponding ground truth mask
 
-T = double(imread(strcat(pathTruth, truthName)));
+T = double(imread(strcat(pathTruth, truthName)))/255;
 
-figure
-imshow(uint8(I))
-hold on
-[c,h] = contour(double(I_seuil));
-h.LineColor='red';
-hold on
-[c,h]=contour(T);
-h.LineColor='green';
-legend('Otsu result','ground truth')
-title(strcat('otsu, image :',imNum,', channel : ',channel));
-
-
-
+displayResult(I, I_seuil, T);
 
 

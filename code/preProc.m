@@ -16,13 +16,22 @@ function [ Ipreproc ] = preProc( I, channel )
     % averaging the channels R, G, B
     if strcmp(channel,'meanRGB')
         I = sum(I,3)/3;
-    end
     
     % selecting blue channel
-    if strcmp(channel, 'b') || strcmp(channel, 'blue')
+    elseif strcmp(channel, 'b') || strcmp(channel, 'blue')
         I = I(:,:,3);
-    end
     
+    % selecting X channel from CIE-XYZ
+    elseif strcmp(channel,'X')
+        cR = 0.4125;
+        cG = 0.3576;
+        cB = 0.1804;
+        I = cR*I(:,:,1) + cG*I(:,:,2) + cB*I(:,:,3);
+    
+    else 
+        warning('non existent or invalid channel argument : assumed meanRGB')
+        I = sum(I,3)/3;
+    end
     
     
     Ipreproc= dullRazor(I);    

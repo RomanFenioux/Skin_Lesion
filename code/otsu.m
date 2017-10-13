@@ -1,8 +1,10 @@
 function [ k_optim, eta_optim ] = otsu( I )
 %   OTSU calculates the optimal histogram threshold following Otsu's paper
 %   [ k_optim, eta_optim ] = otsu( I )
+%   I is the original grey level image with values between 0 and 1.
 %   k_optim is the optimal threshold computed from the image I
 %   eta_optim is the separability measure at k_optim in otsu's method
+
     
     I=double(I); % just to be sure
 
@@ -35,7 +37,7 @@ function [ k_optim, eta_optim ] = otsu( I )
         
         if sigma_B2>sigma_B2_max
             sigma_B2_max=sigma_B2;
-            k_optim = k;
+            k_optim = k/255; % les images sont entre 0 et 1
         end
     end
     
