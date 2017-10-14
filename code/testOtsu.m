@@ -14,6 +14,8 @@ truthName= strcat('ISIC_0000', imNum, '_segmentation.png');
 %% Segmentation of an image
 
 I = double(imread(strcat(pathTraining, imName)))/255;
+% Image resizing is currently necessary for the dullRazor hair removal 
+I = imresize(I,[512 nan]);
 
 % pre-processing the image to change color space and remove hair
 channel='X';
@@ -29,6 +31,8 @@ I_seuil = double(IpreProc < threshold);
 %% Evaluation by displaying the results and the corresponding ground truth mask
 
 T = double(imread(strcat(pathTruth, truthName)))/255;
+% Image resizing is currently necessary for the dullRazor hair removal 
+T = imresize(T, [512 nan]);
 
 displayResult(IpreProc, I_seuil, T);
 

@@ -4,15 +4,18 @@ function [ Ishaved ] = dullRazor( I )
 %   I is a grayscale image
 %   Ishaved is the image without the hair
 %
-%   maskThreshold is a threshold used to get the hair mask from the morphological
-%   closing image. It is a heuristic value.
+
     Ishaved=I;
     [sizeX, sizeY]=size(I(:,:,1));
 
-    maskThreshold = 0.05;
+    
 
     %% 1st step : locating dark hair (=computing the hair mask)
     
+    %   maskThreshold is a threshold used to get the hair mask from the morphological
+    %   closing image. It is a heuristic value.
+    maskThreshold = 0.05;    
+
     % we separate the 3 RGB components of I. Each channel will be processed
     % separately, then the 3 hair masks will be merged
     Ir = I(:,:,1);

@@ -9,9 +9,9 @@ function [Mdenoised] = hairDenoise(M)
 %   far we can go. We keep the pixel when one direction has a length > 50
 %   and all others < 10
    
-%************ TEMPORARY MORPHOLOGICAL DENOISING ***********%%%%
+%%%%********* TEMPORARY MORPHOLOGICAL DENOISING ***********%%%%
 
-    SE0  =  [0 1 1 1 1 1 1 0];
+    SE0  =  [0, 1, 1, 1, 1, 1, 1, 0];
     SE90 =  [0; 1; 1; 1; 1; 1; 1; 0];
      
     Mdenoised=cat(3, imopen(M,SE0),imopen(M,SE90));
@@ -73,7 +73,7 @@ function [Mdenoised] = hairDenoise(M)
 %             % update the values if there are still in the hair mask (if
 %             % their value is 1)
 %             
-%             if p1H &&
+%             if p1H 
 %                 p1H  =  M( ip, j1);       
 %                 lengths(1) = lengths(1) + 1;
 %             end
@@ -110,15 +110,31 @@ function [Mdenoised] = hairDenoise(M)
 %             % reached the border of the image
 %             if (i1-1 > 0)
 %                 i1=i1-1;
+%             else
+%                 p1V=0;
+%                 p1LD=0;
+%                 p2RD=0;
 %             end
 %             if (i2+1 <= sizeX)
-%                 i2=i2+1;            
+%                 i2=i2+1;    
+%             else
+%                 p1RD=0;
+%                 p2V=0;
+%                 p2LD=0;
 %             end
 %             if (j1-1 > 0)
 %                 j1=j1-1;
+%             else
+%                 p1LD=0;
+%                 p1H=0;
+%                 p1RD=0;
 %             end
 %             if (j2+1 <= sizeY)
 %                 j2=j2+1;
+%             else
+%                 p2RD=0;
+%                 p2H=0;
+%                 p2LD=0;
 %             end
 %             
 %         end
