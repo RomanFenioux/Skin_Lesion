@@ -17,19 +17,19 @@ I = double(imread(strcat(pathTraining, imName)))/255;
 
 % pre-processing the image to change color space and remove hair
 channel='X';
-I = preProc(I,channel);
+IpreProc = preProc(I,channel);
 
 % compute the threshold using Otsu's paper : threshold is the optimal threshold.
 % eta is the separability measure used by Otsu to choose the threshold (see otsu.m), it 
 % can be used to evaluate the quality of the thresholding 
-[threshold, eta] = otsu(I); 
+[threshold, eta] = otsu(IpreProc); 
 
-I_seuil = double(I < threshold);
+I_seuil = double(IpreProc < threshold);
 
 %% Evaluation by displaying the results and the corresponding ground truth mask
 
 T = double(imread(strcat(pathTruth, truthName)))/255;
 
-displayResult(I, I_seuil, T);
+displayResult(IpreProc, I_seuil, T);
 
 
