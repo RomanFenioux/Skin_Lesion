@@ -2,7 +2,7 @@ clear all
 close all
 
 % choose the number of the image (3 last digits)
-imNum = '174'; 
+imNum = input('image id (3 digits) : ', 's'); 
 
 % choose the paths of the training images and ground truth segmentation masks
 pathTraining = '../data/ISIC-2017_Training_sample/';
