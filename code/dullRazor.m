@@ -14,7 +14,7 @@ function [ Ishaved ] = dullRazor( I )
     
     %   maskThreshold is a threshold used to get the hair mask from the morphological
     %   closing image. It is a heuristic value.
-    maskThreshold = 0.05;    
+    maskThreshold = 0.1;    
 
     % we separate the 3 RGB components of I. Each channel will be processed
     % separately, then the 3 hair masks will be merged
@@ -32,12 +32,20 @@ function [ Ishaved ] = dullRazor( I )
              0 0 0 0 0 1 0 0;
              0 0 0 0 0 0 1 0;
              0 0 0 0 0 0 0 0;];
+    SE135=  [0 0 0 0 0 0 0 0;
+             0 0 0 0 0 0 1 0;
+             0 0 0 0 0 1 0 0;
+             0 0 0 0 1 0 0 0;
+             0 0 0 1 0 0 0 0;
+             0 0 1 0 0 0 0 0;
+             0 1 0 0 0 0 0 0;
+             0 0 0 0 0 0 0 0;];
     SE90 =  [0; 1; 1; 1; 1; 1; 1; 0];
     
     % compute the morphological closing on each channel with the 3 SE
-    Irclose = cat(3, imclose(Ir,SE0),imclose(Ir,SE45), imclose(Ir,SE90));
-    Igclose = cat(3, imclose(Ig,SE0),imclose(Ig,SE45), imclose(Ig,SE90));
-    Ibclose = cat(3, imclose(Ib,SE0),imclose(Ib,SE45), imclose(Ib,SE90));
+    Irclose = cat(3, imclose(Ir,SE0),imclose(Ir,SE45), imclose(Ir,SE90), imclose(Ir,SE135));
+    Igclose = cat(3, imclose(Ig,SE0),imclose(Ig,SE45), imclose(Ig,SE90), imclose(Ig,SE135));
+    Ibclose = cat(3, imclose(Ib,SE0),imclose(Ib,SE45), imclose(Ib,SE90), imclose(Ib,SE135));
 
     % compute the closing masks on each channel with a heuristic threshold
     Gr = abs(Ir-max(Irclose,[],3));
@@ -82,15 +90,15 @@ function [ Ishaved ] = dullRazor( I )
         Vborder=false;
         % border check
         if (imin~=i-d || imax~=i+d)
-            firstbestneighbor=2; % when border forces horizontal 
+            firstbestneighbor=2; % top or bottom border forces horizontal 
             Hborder=true;
         end
         if (jmin~=j-d || jmax~=j+d)
-            firstbestneighbor=1; % when border forces vertical
+            firstbestneighbor=1; % right or left border forces vertical
             Vborder=true;
         end    
         if (Hborder && Vborder)
-            firstbestneighbor=5; % code used to leave I(i,j) as it is
+            firstbestneighbor=5; % both border (corner): leave I(i,j) as it is
         end
         
         if (~Hborder && ~Vborder) % no border, clear to go            
@@ -118,6 +126,38 @@ function [ Ishaved ] = dullRazor( I )
         
     end
     
+    %% 3d step : remove artifacts
+    
+    % binary dilatation of the hair mask
+    SEdilat = [0 0 0 0 0 0 0;
+               0 1 1 1 1 1 0;
+               0 1 1 1 1 1 0;
+               0 1 1 1 1 1 0;
+               0 1 1 1 1 1 0;
+               0 1 1 1 1 1 0;
+               0 0 0 0 0 0 0;];
+    Mdilat= imdilate(Md, SEdilat);
+    
+    % adaptative median filter : we only apply it on the pixel of the
+    % dilated hair mask (to remove remaining hair lines artifacts)
+    
+    % computing the median filtered shaved image
+    ImedianR = medfilt2(Ishaved(:,:,1),[5, 5]);
+    ImedianG = medfilt2(Ishaved(:,:,2),[5, 5]); 
+    ImedianB = medfilt2(Ishaved(:,:,3),[5, 5]);
+    
+    % replacing the pixels located in the dilated hair mask by the filtered pixels 
+    indexes=find(Mdilat==1);
+    IshavedR = Ishaved(:,:,1);
+    IshavedG = Ishaved(:,:,2);
+    IshavedB = Ishaved(:,:,3);
+    
+    IshavedR(indexes) = ImedianR(indexes);
+    IshavedG(indexes) = ImedianG(indexes);
+    IshavedB(indexes) = ImedianB(indexes);
+    
+    Ishaved = cat(3, IshavedR, IshavedG, IshavedB);
+
     
 end
 
