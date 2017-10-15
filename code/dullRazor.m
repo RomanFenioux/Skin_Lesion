@@ -1,8 +1,8 @@
 function [ Ishaved ] = dullRazor( I )
 %DULLRAZOR Hair removal
 %   [ Ishaved ] = dullRazor( I )
-%   I is a grayscale image
-%   Ishaved is the image without the hair
+%   I is the RGB image
+%   Ishaved is the RGB image without the hair
 %
 
     Ishaved=I;

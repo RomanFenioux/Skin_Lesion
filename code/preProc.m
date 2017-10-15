@@ -1,8 +1,10 @@
-function [ Ipreproc ] = preProc( I, channel )
+function [ IpreProc ] = preProc( I, channel )
 %PREPROC computes all needed preprocessing on the image I
-%   [ Ipreproc ] = preProc( I, channel )
+%   [ IpreProc ] = preProc( I, channel )
 %   channel contains a string : 
 %   'meanRGB' average the channels RGB
+%   'r' or 'red' to select the red channel in RGB space
+%   'g' or 'green' to select the green channel in RGB space
 %   'b' or 'blue' to select the blue channel in RGB space
 %   'X' to select the X channel in CIE-XYZ space
 %
@@ -14,26 +16,8 @@ function [ Ipreproc ] = preProc( I, channel )
     % removing hair with dullRazor
     Ishaved = dullRazor(I);
     
-    % selecting meanRGB : averaging the channels R, G, B
-    if strcmp(channel,'meanRGB')
-        Ipreproc = sum(Ishaved,3)/3;
-    
-    % selecting blue channel
-    elseif strcmp(channel, 'b') || strcmp(channel, 'blue')
-        Ipreproc = Ishaved(:,:,3);
-    
-    % selecting X channel from CIE-XYZ
-    elseif strcmp(channel,'X')
-        cR = 0.4125;
-        cG = 0.3576;
-        cB = 0.1804;
-        Ipreproc = cR*Ishaved(:,:,1) + cG*Ishaved(:,:,2) + cB*Ishaved(:,:,3);
-    
-    % selecting meanRGB by default
-    else 
-        warning('non existent or invalid channel argument : assumed meanRGB')
-        Ipreproc = sum(Ishaved,3)/3;
-    end
+    % selecting channel
+    IpreProc = channelSelect(Ishaved, channel);
 
 end
 
