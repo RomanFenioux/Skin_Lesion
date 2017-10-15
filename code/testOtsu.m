@@ -32,7 +32,7 @@ IpreProc= channelSelect(Ishaved, channel);
 % eta is Otsu's separability measure at the optimal threshold. 
 % it can be used to evaluate the quality of the thresholding. 
 [threshold, eta] = otsu(IpreProc);
-I_seuil = double(IpreProc < threshold-0.15); % heuristic lowering of the threshold
+I_seuil = double(IpreProc < threshold); 
 
 %% display
 % display the segmentation and tuth for visual evaluation of the results
