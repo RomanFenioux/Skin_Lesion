@@ -9,13 +9,13 @@ imNum = input('image id (3 digits) : ', 's');
 pathIm = '../data/ISIC-2017_Training_sample/';
 imName= strcat('ISIC_0000', imNum, '.jpg');
 I = double(imread(strcat(pathIm, imName)))/255;
-I = imresize(I,[512 nan], 'nearest');
+I = imresize(I,[512 nan], 'bilinear');
 
 % read groundtruth mask, normalize, resize
 pathTruth = '../data/ISIC-2017_GroundTruth_sample/';
 truthName= strcat('ISIC_0000', imNum, '_segmentation.png');
 T = double(imread(strcat(pathTruth, truthName)))/255;
-T = imresize(T,[512 nan], 'nearest');
+T = imresize(T,[512 nan], 'nearest'); % 'nearest' preserves T as a binary mask
 
 
 %% dullRazor
@@ -32,7 +32,7 @@ IpreProc= channelSelect(Ishaved, channel);
 % eta is Otsu's separability measure at the optimal threshold. 
 % it can be used to evaluate the quality of the thresholding. 
 [threshold, eta] = otsu(IpreProc);
-I_seuil = double(IpreProc < threshold);
+I_seuil = double(IpreProc < threshold-0.15); % heuristic lowering of the threshold
 
 %% display
 % display the segmentation and tuth for visual evaluation of the results
