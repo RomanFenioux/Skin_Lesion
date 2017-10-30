@@ -1,24 +1,59 @@
 \documentclass[a4paper,10pt]{article}
 \usepackage[utf8]{inputenc}
+\usepackage{xargs}                      % Use more than one optional parameter in a new commands
+\usepackage[pdftex,dvipsnames]{xcolor}  % Coloured text etc.
+%\usepackage{ansmath}
+\usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+% note: disable any of the folling commands by adding 'disable' as a first option after \todo
+% see example with the third one
+\newcommandx{\tobecompleted}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
+\newcommandx{\thiswillnotshow}[2][1=]{\todo[disable,linecolor=OliveGreen,backgroundcolor=OliveGreen!25,bordercolor=OliveGreen,#1]{#2}}
+
+%\DeclareMathOperator*{\argmin}{argmin} 
 
 %opening
-\title{projet PRIM - segmentation of skin lesions}
+\title{PRIM Project\\ Segmentation of skin lesions}
 \author{Roman Fenioux}
 
 \begin{document}
-
 \maketitle
-
+\newpage
 \begin{abstract}
-In this project I will compare different segmentation methods for skin lesions. //
------------------------------------------------------------------------ //
- TO DO : talk about skin lesions, why it's important, melanoma, etc... //
------------------------------------------------------------------------ //
+In this project I will compare different segmentation methods for skin lesions. \tobecompleted{intro about skin lesion, importance, etc...}
 \end{abstract}
 
-\section{Otsu thresholding}
-The easiest method that comes to mind is thresholding since the skin lesions are often darker than the surrounding skin. 
+\section{Segmentation}
+\subsection{Thresholding}
+\paragraph{}
+The easiest method that comes to mind is thresholding since the skin lesions are usually darker than the surrounding skin. Given a grayscale image, we can classify pixels as being part of the region of interest (ROI) or of the background based on their intensities.
+\paragraph{Otsu~\cite{Otsu1979}}\tobecompleted{Otsu algorithm description}
+Our objective is to find a good threshold to separate the lesion from the surrounding skin. Otsu's approach consist seeing the histogram as a probability distribution, and then choosing the threshold that maximizes the separability measure $\eta$ or equivalently the variance $\sigma_B^2$ between the two classes obtained, as defined in equation \ref{eq:otsuvariance}.
+
+\begin{equation} \label{eq:otsuvariance}
+  \sigma_B^2 = \omega_0 (\mu_0 - \mu_T)^2 + \omega_1 (\mu_1 - \mu_T)^2 
+\end{equation}
+\begin{equation} \label{eq:optimthresh}
+  k^* = arg\max_{1<k<L} \sigma_B^2(k)   
+\end{equation}
+\tobecompleted{correct the argmax typo, with package ansmath and DeclareMathOperator }
 
 
+
+\section{Pre-processing}
+\subsection{Hair removal}
+\paragraph{Dullrazor~\cite{Dullrazor1997}} algorithm is the state-of-the-art method for hair removal. It consists in the following steps:
+\begin{enumerate}
+ \item Locating dark hair with a grayscale morphological closing operation with vertical, horizontal and diagonals structure elements on the three RGB channels. We obtain the hair mask by thresholding the absolute difference with the original image.
+ \item Denoising the hair mask and interpolating the hair pixels with neighbor non-hair pixels. 
+ \item Removing the remaining hair artefacts with an adapted median filter, only applied on the pixels located in the enlarged hair regions
+ (morphological dilatation of the hair mask).
+\end{enumerate}
+
+
+\subsection{Color space}
+The segmentation performance is influence by the colorspace used. Some methods \tobecompleted{cite them} simply use the blue channel from RGB colorspace, but Garnavi, Celebi and al~\cite{Garnavi2010} have shown that, at least for a threshold-based approach, the X channel from CIE-XYZ color space gives better performances.
+
+\bibliographystyle{plain}
+\bibliography{PRIM-rapport}
 
 \end{document}

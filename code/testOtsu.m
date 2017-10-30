@@ -26,6 +26,8 @@ Ishaved = dullRazor(I);
 % converts Ishaved to a grayscale image (here : channel X from CIE-XYZ)
 channel = 'X';
 IpreProc= channelSelect(Ishaved, channel);
+% maximize dynamic range
+IpreProc=(IpreProc-min(IpreProc(:)))/max(IpreProc(:));
 
 %% otsu
 % Threshold the image using Otsu's paper : 'threshold' is the optimal threshold.
@@ -37,3 +39,5 @@ I_seuil = double(IpreProc < threshold);
 %% display
 % display the segmentation and tuth for visual evaluation of the results
 displayResult(IpreProc, I_seuil, T);
+
+
