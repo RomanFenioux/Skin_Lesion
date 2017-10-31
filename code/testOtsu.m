@@ -36,6 +36,11 @@ IpreProc=(IpreProc-min(IpreProc(:)))/max(IpreProc(:));
 [threshold, eta] = otsu(IpreProc);
 I_seuil = double(IpreProc < threshold); 
 
+%% evaluation
+% compute dice and jaccard index
+dice = dice(I_seuil, T)
+jaccard = jaccard(I_seuil,T)
+
 %% display
 % display the segmentation and tuth for visual evaluation of the results
 displayResult(IpreProc, I_seuil, T);
