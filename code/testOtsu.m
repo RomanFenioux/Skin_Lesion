@@ -36,13 +36,25 @@ IpreProc=(IpreProc-min(IpreProc(:)))/max(IpreProc(:));
 [threshold, eta] = otsu(IpreProc);
 I_seuil = double(IpreProc < threshold); 
 
+%% Connected component analysis
+% we keep only the largest connected component
+CC=bwconncomp(I_seuil);
+% Sort the connected component by size
+numPixels = cellfun(@numel,CC.PixelIdxList);
+[biggest,idx] = max(numPixels);
+% we only set to 1 the pixels from that component
+Isegt = zeros(size(I_seuil));
+Isegt(CC.PixelIdxList{idx}) = 1;
+
+
 %% evaluation
 % compute dice and jaccard index
-dice = dice(I_seuil, T)
-jaccard = jaccard(I_seuil,T)
+dice = dice(Isegt, T)
+jaccard = jaccard(Isegt,T)
 
 %% display
 % display the segmentation and tuth for visual evaluation of the results
-displayResult(IpreProc, I_seuil, T);
+displayResult(IpreProc, Isegt, T);
+title(sprintf('Otsu Threshold - dice = %g, jaccard = %g',dice,jaccard))
 
 
