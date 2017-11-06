@@ -36,25 +36,38 @@ IpreProc=(IpreProc-min(IpreProc(:)))/max(IpreProc(:));
 [threshold, eta] = otsu(IpreProc);
 I_seuil = double(IpreProc < threshold); 
 
+%% Image filling
+%fill the holes in the regions
+I_filled=imfill(I_seuil,'holes');
+
 %% Connected component analysis
-% we keep only the largest connected component
-CC=bwconncomp(I_seuil);
-% Sort the connected component by size
-numPixels = cellfun(@numel,CC.PixelIdxList);
-[biggest,idx] = max(numPixels);
-% we only set to 1 the pixels from that component
-Isegt = zeros(size(I_seuil));
-Isegt(CC.PixelIdxList{idx}) = 1;
+% connected component
+CC=bwconncomp(I_filled);
+% Compute the areas and the bounding box of each component
+stats=regionprops('table',CC,'Area','BoundingBox','Centroid');
+% keep only the components with a sufficient area and centered (heuristic, but this is
+% not very sensitive, because lesions are way bigger, and noise is way
+% smaller than 80)
+center=repmat(size(I_seuil)/2,size(stats,1),1);
+distance=sqrt(sum((stats.Centroid-center).^2,2));
+idx=find([stats.Area]>1000 & distance<size(I_seuil,1)/2);
+
+% To choose among the big areas, we keep those with a small bounding box
+% (this avoids choosing the black margins)
+boundingBoxArea=stats.BoundingBox(:,3).*stats.BoundingBox(:,4);
+[~,argmin]=min(boundingBoxArea(idx));
+Isegt=double(ismember(labelmatrix(CC),idx(argmin)));
 
 
 %% evaluation
 % compute dice and jaccard index
-dice = dice(Isegt, T)
-jaccard = jaccard(Isegt,T)
+dice = dice(Isegt, T);
+jaccard = jaccard(Isegt,T);
 
 %% display
 % display the segmentation and tuth for visual evaluation of the results
 displayResult(IpreProc, Isegt, T);
 title(sprintf('Otsu Threshold - dice = %g, jaccard = %g',dice,jaccard))
+
 
 
