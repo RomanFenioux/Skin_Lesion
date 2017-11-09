@@ -75,8 +75,8 @@ for i=1:inputNb
 
         % To choose among the big areas, we keep those with a small bounding box
         % (this avoids choosing the black margins)
-        boundingBoxArea=stats.BoundingBox(:,3).*stats.BoundingBox(:,4);
-        [~,argmin]=min(boundingBoxArea(idx));
+        boundingBoxSizes=max([stats.BoundingBox(:,3), stats.BoundingBox(:,4)],[],2);
+        [~,argmin]=min(boundingBoxSizes(idx));
         Isegt=double(ismember(labelmatrix(CC),idx(argmin)));
 
     elseif strcmp(CCA_Enabled,'n')
@@ -93,12 +93,17 @@ end
 %% display
 % plot the dice and jaccard indices for all images
 
-figure;
+F=figure;
 plot(diceList,'red')
 hold on
 plot(jaccardList,'blue')
 hold off
 title('Evaluation of the results on the database')
 legend('dice','jaccard','Location','SouthEast')
+set(gca,'XTick',(1:40));
+set(gca,'XTickLabel',imList);
+set(0, 'units', 'points')
+p=get(0,'screensize');
+set(F,'Position',[0.25*p(3) 0.25*p(4) 1.3*p(3) p(4)])
 
 

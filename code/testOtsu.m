@@ -1,5 +1,5 @@
 clear all
-close all
+%close all
 
 % choose the number of the image (3 last digits)
 imNum = input('image id (3 digits) : ', 's'); 
@@ -54,8 +54,8 @@ idx=find([stats.Area]>1000 & distance<size(I_seuil,1)/2);
 
 % To choose among the big areas, we keep those with a small bounding box
 % (this avoids choosing the black margins)
-boundingBoxArea=stats.BoundingBox(:,3).*stats.BoundingBox(:,4);
-[~,argmin]=min(boundingBoxArea(idx));
+boundingBoxSizes=max([stats.BoundingBox(:,3), stats.BoundingBox(:,4)],[],2);
+[~,argmin]=min(boundingBoxSizes(idx));
 Isegt=double(ismember(labelmatrix(CC),idx(argmin)));
 
 
