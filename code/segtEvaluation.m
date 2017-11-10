@@ -6,33 +6,38 @@ CCA_Enabled = input('enable connected component analysis? (y/n)', 's');
 % inputs
 pathIm = '../data/ISIC-2017_Training_sample/';
 pathTruth = '../data/ISIC-2017_GroundTruth_sample/';
-idListNevus = {   '000' '001' '003' '006' '007' '008' '009' '010' '011'...
+idNevus = {   '000' '001' '003' '006' '007' '008' '009' '010' '011'...
     '012' '015' '016' '017' '019' '042' '082' '085' '095' '127' '235'};
-idListMelanoma = { '002' '004' '013' '022' '026' '030' '031' '035' '036'...
+idMelanoma = { '002' '004' '013' '022' '026' '030' '031' '035' '036'...
     '040' '043' '049' '054' '056' '074' '077' '078' '139' '160' '174'};
-imList = [idListNevus idListMelanoma];
-inputNb = numel(imList);
+idList = [idNevus idMelanoma];
 
 % init outputs
 segtList=[];
-diceList=zeros(inputNb,1);
-jaccardList=zeros(inputNb,1);
+diceList=zeros(numel(idList),1);
+jaccardList=zeros(numel(idList),1);
+
                 
-for i=1:inputNb
-    fprintf('processing image number %d, id = %s\n',i, imList{i})
-    if i>size(idListNevus,1)
+for i=1:numel(idList)
+    
+    if i>numel(idNevus)
         Melanoma = true;
+        type = 'melanoma';
+    else
+        Melanoma = false;
+        type = 'nevus';
     end
+    fprintf('processing image number %d, id = %s, type = %s\n',i, idList{i},type)
     
     %% read image and ground truth
     % read image, normalize values between 0 and 1, resize (for dullRazor)
     
-    imName= strcat('ISIC_0000', imList{i}, '.jpg');
+    imName= strcat('ISIC_0000', idList{i}, '.jpg');
     I = double(imread(strcat(pathIm, imName)))/255;
     I = imresize(I,[512 680], 'nearest');
 
     % read groundtruth mask, normalize, resize
-    truthName= strcat('ISIC_0000', imList{i}, '_segmentation.png');
+    truthName= strcat('ISIC_0000', idList{i}, '_segmentation.png');
     T = double(imread(strcat(pathTruth, truthName)))/255;
     T = imresize(T,[512 680], 'nearest');
 
@@ -90,18 +95,39 @@ for i=1:inputNb
     segtList=cat(3,segtList,Isegt);
 end
 
+diceNevus=diceList(1:numel(idNevus));
+jaccardNevus=jaccardList(1:numel(idNevus));
+
+diceMela=diceList(numel(idNevus)+1:end);
+jaccardMela=jaccardList(numel(idNevus)+1:end);
 %% display
 % plot the dice and jaccard indices for all images
 
 F=figure;
-plot(diceList,'red')
+subplot(1,2,1)
+plot(diceNevus,'s','Color','red')
 hold on
-plot(jaccardList,'blue')
+plot(get(gca,'xlim'), [mean(diceNevus) mean(diceNevus)],'red'); 
+plot(jaccardNevus,'d','Color', 'blue')
+plot(get(gca,'xlim'), [mean(jaccardNevus) mean(jaccardNevus)],'blue'); 
 hold off
-title('Evaluation of the results on the database')
-legend('dice','jaccard','Location','SouthEast')
-set(gca,'XTick',(1:40));
-set(gca,'XTickLabel',imList);
+title('Dice and jaccard indices : nevus')
+legend('dice','average dice','jaccard','average jaccard','Location','SouthWest')
+% set(gca,'XTick',(1:20));
+% set(gca,'XTickLabel',idNevus);
+
+subplot(1,2,2)
+plot(diceMela,'s','Color','red')
+hold on
+plot(get(gca,'xlim'), [mean(diceMela) mean(diceMela)],'red'); 
+plot(jaccardMela,'d','Color', 'blue')
+plot(get(gca,'xlim'), [mean(jaccardMela) mean(jaccardMela)],'blue'); 
+hold off
+title('Dice and jaccard indices : melanoma')
+legend('dice','average dice','jaccard','average jaccard','Location','SouthWest')
+% set(gca,'XTick',(1:20));
+% set(gca,'XTickLabel',idMelanoma);
+
 set(0, 'units', 'points')
 p=get(0,'screensize');
 set(F,'Position',[0.25*p(3) 0.25*p(4) 1.3*p(3) p(4)])
