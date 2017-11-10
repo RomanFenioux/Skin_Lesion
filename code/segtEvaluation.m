@@ -34,7 +34,7 @@ for i=1:numel(idList)
     
     imName= strcat('ISIC_0000', idList{i}, '.jpg');
     I = double(imread(strcat(pathIm, imName)))/255;
-    I = imresize(I,[512 680], 'nearest');
+    I = imresize(I,[512 680], 'bilinear');
 
     % read groundtruth mask, normalize, resize
     truthName= strcat('ISIC_0000', idList{i}, '_segmentation.png');

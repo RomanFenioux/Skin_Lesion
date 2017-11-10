@@ -29,6 +29,7 @@ IpreProc= channelSelect(Ishaved, channel);
 % maximize dynamic range
 IpreProc=(IpreProc-min(IpreProc(:)))/max(IpreProc(:));
 
+
 %% otsu
 % Threshold the image using Otsu's paper : 'threshold' is the optimal threshold.
 % eta is Otsu's separability measure at the optimal threshold. 
@@ -67,7 +68,7 @@ jaccard = jaccard(Isegt,T);
 %% display
 % display the segmentation and tuth for visual evaluation of the results
 displayResult(IpreProc, Isegt, T);
-title(sprintf('Otsu Threshold - dice = %g, jaccard = %g',dice,jaccard))
+title(sprintf('Otsu Threshold on image %s : dice = %g, jaccard = %g',imNum,dice,jaccard))
 
 
 
