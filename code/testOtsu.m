@@ -29,12 +29,18 @@ IpreProc= channelSelect(Ishaved, channel);
 % maximize dynamic range
 IpreProc=(IpreProc-min(IpreProc(:)))/max(IpreProc(:));
 
+%% black frame mask
+% blackM is a binary mask that equals 1 on the black borders of the image
+% I will be negative on the black border region, unchanged elsewhere
+blackM = blackFrame(IpreProc); 
+
 
 %% otsu
 % Threshold the image using Otsu's paper : 'threshold' is the optimal threshold.
 % eta is Otsu's separability measure at the optimal threshold. 
 % it can be used to evaluate the quality of the thresholding. 
-[threshold, eta] = otsu(IpreProc);
+
+[threshold, eta] = otsu(IpreProc((IpreProc-2*blackM)>0));
 I_seuil = double(IpreProc < threshold); 
 
 %% Image filling
