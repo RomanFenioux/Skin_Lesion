@@ -1,9 +1,9 @@
-function [blackM] = blackFrame(I)
+function [blackM] = blackFrame(I,threshold)
 %REMOVEBLACKFRAME Summary of this function goes here
 %   I is a gray level image
 %   blackM
 
-    Iblack = double(I<0.2); %removeBlackFrame(IpreProc);
+    Iblack = double(I<threshold); %removeBlackFrame(IpreProc);
 
     CC=bwconncomp(Iblack);
     % Compute the areas and the bounding box of each component

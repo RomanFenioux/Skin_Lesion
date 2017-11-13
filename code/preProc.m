@@ -12,10 +12,7 @@ function [ IpreProc ] = preProc( I, channel )
 %   Different segmentation methods will need different preprocessing.
 %   For now preProc merely removes hair, using Dullrazor method and changes
 %   the color channel.
-    
-    % remove first and last rows and columns, as some images appears to
-    % have a white border 
-    I = I(2:end-1,2:end-1,:);
+   
     
     % removing hair with dullRazor
     Ishaved = dullRazor(I);

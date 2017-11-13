@@ -34,29 +34,30 @@ for i=1:numel(idList)
     
     imName= strcat('ISIC_0000', idList{i}, '.jpg');
     I = double(imread(strcat(pathIm, imName)))/255;
+    I = I(2:end-1,2:end-1,:);
     I = imresize(I,[512 680], 'bilinear');
 
     % read groundtruth mask, normalize, resize
     truthName= strcat('ISIC_0000', idList{i}, '_segmentation.png');
     T = double(imread(strcat(pathTruth, truthName)))/255;
+    T = T(2:end-1,2:end-1,:);
     T = imresize(T,[512 680], 'nearest');
-
-
-    %% dullRazor
-    % hair removal using the dullRazor algorithm. Ishaved and I are RGB images
-    Ishaved = dullRazor(I);
-
-    %% channel selection
-    % converts Ishaved to a grayscale image (here : channel X from CIE-XYZ)
+    
+    %% pre Processing : dullrazor, channel selection, maximize dynamic range
     channel = 'X';
-    IpreProc= channelSelect(Ishaved, channel);
+    IpreProc= preProc(I,channel);
+    
+    %% black frame mask
+    % blackM is a binary mask that equals 1 on the black borders of the image
+    % I will be negative on the black border region, unchanged elsewhere
+    blackM = blackFrame(IpreProc,0.2); 
 
     %% otsu
     % Threshold the image using Otsu's paper : 'threshold' is the optimal threshold.
     % eta is Otsu's separability measure at the optimal threshold. 
     % it can be used to evaluate the quality of the thresholding. 
-    [threshold, eta] = otsu(IpreProc);
-    I_seuil = double(IpreProc < threshold);
+    [threshold, eta] = otsu(IpreProc((IpreProc-2*blackM>0)));
+    I_seuil = double(IpreProc < threshold)-blackM;
          
     %% Image filling
     %fill the holes in the regions

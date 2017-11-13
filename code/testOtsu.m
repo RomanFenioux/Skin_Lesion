@@ -9,12 +9,14 @@ imNum = input('image id (3 digits) : ', 's');
 pathIm = '../data/ISIC-2017_Training_sample/';
 imName= strcat('ISIC_0000', imNum, '.jpg');
 I = double(imread(strcat(pathIm, imName)))/255;
+I = I(2:end-1,2:end-1,:);
 I = imresize(I,[512 nan], 'bilinear');
 
 % read groundtruth mask, normalize, resize
 pathTruth = '../data/ISIC-2017_GroundTruth_sample/';
 truthName= strcat('ISIC_0000', imNum, '_segmentation.png');
 T = double(imread(strcat(pathTruth, truthName)))/255;
+T = T(2:end-1,2:end-1,:);
 T = imresize(T,[512 nan], 'nearest'); % 'nearest' preserves T as a binary mask
 
 
@@ -26,13 +28,14 @@ Ishaved = dullRazor(I);
 % converts Ishaved to a grayscale image (here : channel X from CIE-XYZ)
 channel = 'X';
 IpreProc= channelSelect(Ishaved, channel);
+
 % maximize dynamic range
 IpreProc=(IpreProc-min(IpreProc(:)))/max(IpreProc(:));
 
 %% black frame mask
 % blackM is a binary mask that equals 1 on the black borders of the image
 % I will be negative on the black border region, unchanged elsewhere
-blackM = blackFrame(IpreProc); 
+blackM = blackFrame(IpreProc,0.2); 
 
 
 %% otsu
@@ -41,7 +44,7 @@ blackM = blackFrame(IpreProc);
 % it can be used to evaluate the quality of the thresholding. 
 
 [threshold, eta] = otsu(IpreProc((IpreProc-2*blackM)>0));
-I_seuil = double(IpreProc < threshold); 
+I_seuil = double(IpreProc < threshold)-blackM; 
 
 %% Image filling
 %fill the holes in the regions
@@ -57,7 +60,7 @@ stats=regionprops('table',CC,'Area','BoundingBox','Centroid');
 % smaller than 80)
 center=repmat(size(I_seuil)/2,size(stats,1),1);
 distance=sqrt(sum((stats.Centroid-center).^2,2));
-idx=find([stats.Area]>1000 & distance<size(I_seuil,1)/2);
+idx=find([stats.Area]>1000) & distance<size(I_seuil,1)/4);
 
 % To choose among the big areas, we keep those with a small bounding box
 % (this avoids choosing the black margins)
