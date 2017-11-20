@@ -17,7 +17,8 @@ pathTruth = '../data/ISIC-2017_GroundTruth_sample/';
 truthName= strcat('ISIC_0000', imNum, '_segmentation.png');
 T = double(imread(strcat(pathTruth, truthName)))/255;
 T = T(2:end-1,2:end-1,:);
-T = imresize(T,[512 nan], 'nearest'); % 'nearest' preserves T as a binary mask
+% 'nearest' preserves T as a binary mask
+T = imresize(T,[512 nan], 'nearest'); 
 
 
 %% dullRazor
@@ -29,20 +30,22 @@ Ishaved = dullRazor(I);
 channel = 'X';
 IpreProc= channelSelect(Ishaved, channel);
 
-% maximize dynamic range
-IpreProc=(IpreProc-min(IpreProc(:)))/max(IpreProc(:));
-
 %% black frame mask
-% blackM is a binary mask that equals 1 on the black borders of the image
-% I will be negative on the black border region, unchanged elsewhere
+% blackM is a binary mask that equals 1 on the black borders of the image I
+% will be negative on the black border region, unchanged elsewhere
 blackM = blackFrame(IpreProc,0.2); 
 
+%% maximize dynamic range
+% we don't take the black borders into account, so these borders may end
+IpreProc=IpreProc-min(IpreProc(~logical(blackM)));
+IpreProc=IpreProc/max(IpreProc(~logical(blackM)));
 
 %% otsu
-% Threshold the image using Otsu's paper : 'threshold' is the optimal threshold.
-% eta is Otsu's separability measure at the optimal threshold. 
-% it can be used to evaluate the quality of the thresholding. 
+% Threshold the image using Otsu's paper : 'threshold' is the optimal
+% threshold. eta is Otsu's separability measure at the optimal threshold.
+% it can be used to evaluate the quality of the thresholding.
 
+% -2*blackM : negative on the black border region, unchanged elsewhere
 [threshold, eta] = otsu(IpreProc((IpreProc-2*blackM)>0));
 I_seuil = double(IpreProc < threshold)-blackM; 
 
@@ -55,29 +58,29 @@ I_filled=imfill(I_seuil,'holes');
 CC=bwconncomp(I_filled);
 % Compute the areas and the bounding box of each component
 stats=regionprops('table',CC,'Area','BoundingBox','Centroid');
-% keep only the components with a sufficient area and centered (heuristic, but this is
-% not very sensitive, because lesions are way bigger, and noise is way
-% smaller than 80)
+% keep only the components with a sufficient area and centered (heuristic,
+% but this is not very sensitive, because lesions are way bigger, and noise
+% is way smaller than 80)
 center=repmat(size(I_seuil)/2,size(stats,1),1);
 distance=sqrt(sum((stats.Centroid-center).^2,2));
-idx=find([stats.Area]>1000) & distance<size(I_seuil,1)/4);
+idx=find([stats.Area]>1000 & distance<0.7*size(I_seuil,1));
 
 % To choose among the big areas, we keep those with a small bounding box
 % (this avoids choosing the black margins)
-boundingBoxSizes=max([stats.BoundingBox(:,3), stats.BoundingBox(:,4)],[],2);
-[~,argmin]=min(boundingBoxSizes(idx));
-Isegt=double(ismember(labelmatrix(CC),idx(argmin)));
+%boundingBoxSizes=max([stats.BoundingBox(:,3), stats.BoundingBox(:,4)],[],2);
+%[~,argmin]=min(boundingBoxSizes(idx));
+Isegt=double(ismember(labelmatrix(CC),idx));
 
 
 %% evaluation
 % compute dice and jaccard index
-dice = dice(Isegt, T);
-jaccard = jaccard(Isegt,T);
+d = dice(Isegt, T);
+j = jaccard(Isegt,T);
 
 %% display
 % display the segmentation and tuth for visual evaluation of the results
 displayResult(IpreProc, Isegt, T);
-title(sprintf('Otsu Threshold on image %s : dice = %g, jaccard = %g',imNum,dice,jaccard))
+title(sprintf('Otsu Threshold on image %s : dice = %g, jaccard = %g',imNum,d,j))
 
 
 

@@ -43,14 +43,24 @@ for i=1:numel(idList)
     T = T(2:end-1,2:end-1,:);
     T = imresize(T,[512 680], 'nearest');
     
-    %% pre Processing : dullrazor, channel selection, maximize dynamic range
+    %% dullRazor
+    % hair removal using the dullRazor algorithm. Ishaved and I are RGB images
+    Ishaved = dullRazor(I);
+
+    %% channel selection
+    % converts Ishaved to a grayscale image (here : channel X from CIE-XYZ)
     channel = 'X';
-    IpreProc= preProc(I,channel);
-    
+    IpreProc= channelSelect(Ishaved, channel);
+
     %% black frame mask
-    % blackM is a binary mask that equals 1 on the black borders of the image
-    % I will be negative on the black border region, unchanged elsewhere
+    % blackM is a binary mask that equals 1 on the black borders of the image I
+    % will be negative on the black border region, unchanged elsewhere
     blackM = blackFrame(IpreProc,0.2); 
+
+    %% maximize dynamic range
+    % we don't take the black borders into account, so these borders may end
+    IpreProc=IpreProc-min(IpreProc(~logical(blackM)));
+    IpreProc=IpreProc/max(IpreProc(~logical(blackM)));
 
     %% otsu
     % Threshold the image using Otsu's paper : 'threshold' is the optimal threshold.
@@ -77,13 +87,13 @@ for i=1:numel(idList)
         % smaller than 80)
         center=repmat(size(I_seuil)/2,size(stats,1),1);
         distance=sqrt(sum((stats.Centroid-center).^2,2));
-        idx=find([stats.Area]>1000 & distance<size(I_seuil,1)/2);
+        idx=find([stats.Area]>1000& distance<0.7*size(I_seuil,1));
 
         % To choose among the big areas, we keep those with a small bounding box
         % (this avoids choosing the black margins)
-        boundingBoxSizes=max([stats.BoundingBox(:,3), stats.BoundingBox(:,4)],[],2);
-        [~,argmin]=min(boundingBoxSizes(idx));
-        Isegt=double(ismember(labelmatrix(CC),idx(argmin)));
+        %boundingBoxSizes=max([stats.BoundingBox(:,3), stats.BoundingBox(:,4)],[],2);
+        %[~,argmin]=min(boundingBoxSizes(idx));
+        Isegt=double(ismember(labelmatrix(CC),idx));
 
     elseif strcmp(CCA_Enabled,'n')
         Isegt=I_seuil;
