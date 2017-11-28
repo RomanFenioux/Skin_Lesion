@@ -63,7 +63,10 @@ stats=regionprops('table',CC,'Area','BoundingBox','Centroid');
 % is way smaller than 80)
 center=repmat(size(I_seuil)/2,size(stats,1),1);
 distance=sqrt(sum((stats.Centroid-center).^2,2));
-idx=find([stats.Area]>1000 & distance<0.7*size(I_seuil,1));
+idx=find([stats.Area]>1000 &  ...
+       stats.BoundingBox(:,1)>2 & stats.BoundingBox(:,2)>2 & ...
+       stats.BoundingBox(:,1)+stats.BoundingBox(:,3)<size(I_filled,2)-1 & ...
+       stats.BoundingBox(:,2)+stats.BoundingBox(:,4)<size(I_filled,1)-1);
 
 % To choose among the big areas, we keep those with a small bounding box
 % (this avoids choosing the black margins)
