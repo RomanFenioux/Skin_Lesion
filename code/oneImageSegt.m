@@ -3,6 +3,7 @@ clear all
 
 % choose the number of the image (3 last digits)
 imNum = input('image id (3 digits) : ', 's'); 
+segtMethod = input('segmentation method (otsu or region): ','s');
 
 %% read image and ground truth
 % read image, normalize values between 0 and 1, resize (for dullRazor)
@@ -40,14 +41,27 @@ blackM = blackFrame(IpreProc,0.2);
 IpreProc=IpreProc-min(IpreProc(~logical(blackM)));
 IpreProc=IpreProc/max(IpreProc(~logical(blackM)));
 
-%% otsu
-% Threshold the image using Otsu's paper : 'threshold' is the optimal
-% threshold. eta is Otsu's separability measure at the optimal threshold.
-% it can be used to evaluate the quality of the thresholding.
-
-% -2*blackM : negative on the black border region, unchanged elsewhere
-[threshold, eta] = otsu(IpreProc((IpreProc-2*blackM)>0));
-I_seuil = double(IpreProc < threshold)-blackM; 
+if strcmp(segtMethod,'otsu')
+    %% otsu
+    % Threshold the image using Otsu's paper : 'threshold' is the optimal
+    % threshold. eta is Otsu's separability measure at the optimal threshold.
+    % it can be used to evaluate the quality of the thresholding.
+    
+    % -2*blackM : negative on the black border region, unchanged elsewhere
+    [threshold, eta] = otsu(IpreProc((IpreProc-2*blackM)>0));
+    I_seuil = double(IpreProc < threshold)-blackM;
+    
+elseif strcmp(segtMethod,'region')
+    %% Region Growing
+    % start from a seed and add neighbor pixels to the region as long as
+    % their intensity is close (threshold) to the mean intensity of the region
+  
+    regionInputs=input('enter seed and threshold for regionGrowing (array [x, y, t]) or press enter : ');
+    if numel(regionInputs)==0
+        regionInputs=[round(size(I,1)/2),round(size(I,2)/2),0.2]
+    end
+    I_seuil=regionGrowing(IpreProc,256,340);
+end
 
 %% Image filling
 %fill the holes in the regions
@@ -61,7 +75,7 @@ stats=regionprops('table',CC,'Area','BoundingBox','Centroid');
 % keep only the components with a sufficient area and centered (heuristic,
 % but this is not very sensitive, because lesions are way bigger, and noise
 % is way smaller than 80)
-center=repmat(size(I_seuil)/2,size(stats,1),1);
+center=repmat(size(I_filled)/2,size(stats,1),1);
 distance=sqrt(sum((stats.Centroid-center).^2,2));
 idx=find([stats.Area]>1000 &  ...
        stats.BoundingBox(:,1)>2 & stats.BoundingBox(:,2)>2 & ...
