@@ -93,6 +93,9 @@ for i=1:numel(idList)
                stats.BoundingBox(:,1)+stats.BoundingBox(:,3)<size(I_filled,2)-1 & ...
                stats.BoundingBox(:,2)+stats.BoundingBox(:,4)<size(I_filled,1)-1);
            
+        if numel(idx)==0
+            idx=find([stats.Area]>1000);
+        end
         % To choose among the big areas, we keep those with a small bounding box
         % (this avoids choosing the black margins)
         %boundingBoxSizes=max([stats.BoundingBox(:,3), stats.BoundingBox(:,4)],[],2);
