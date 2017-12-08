@@ -2,6 +2,10 @@ clear all
 close all
 
 CCA_Enabled = input('enable connected component analysis? (y/n)', 's'); 
+segtMethod = input('segmentation method (otsu or region): ','s');
+computeOtsu = strcmp(segtMethod,'otsu');
+computeRegion = strcmp(segtMethod,'region');
+compare = strcmp(segtMethod,'compare');
 
 % inputs
 pathIm = '../data/ISIC-2017_Training_sample/';
@@ -61,13 +65,23 @@ for i=1:numel(idList)
     % we don't take the black borders into account, so these borders may end
     IpreProc=IpreProc-min(IpreProc(~logical(blackM)));
     IpreProc=IpreProc/max(IpreProc(~logical(blackM)));
-
-    %% otsu
-    % Threshold the image using Otsu's paper : 'threshold' is the optimal threshold.
-    % eta is Otsu's separability measure at the optimal threshold. 
-    % it can be used to evaluate the quality of the thresholding. 
-    [threshold, eta] = otsu(IpreProc((IpreProc-2*blackM>0)));
-    I_seuil = double(IpreProc < threshold)-blackM;
+    
+    if computeOtsu
+        %% otsu
+        % Threshold the image using Otsu's paper : 'threshold' is the optimal threshold.
+        % eta is Otsu's separability measure at the optimal threshold. 
+        % it can be used to evaluate the quality of the thresholding. 
+        [threshold, eta] = otsu(IpreProc((IpreProc-2*blackM>0)));
+        I_seuil = double(IpreProc < threshold)-blackM;
+    end
+    
+    if computeRegion
+        figure(1);
+        imshow(IpreProc)
+        [x, y] = ginput(1);
+        t=0.2;
+        I_seuil=regionGrowing(IpreProc,round(x),round(y),t);
+    end
          
     %% Image filling
     %fill the holes in the regions

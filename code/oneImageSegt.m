@@ -65,16 +65,19 @@ if computeOtsu | compare
     jotsu = jaccard(IsegtOtsu,T);
 end
     
-if computeRegion | compare
+if computeRegion || compare
     %% Region Growing
     % start from a seed and add neighbor pixels to the region as long as
     % their intensity is close (threshold) to the mean intensity of the region
+    figure(1);
+    imshow(IpreProc)
+    [x, y] = ginput(1);
   
-    regionInputs=input('enter seed and threshold for regionGrowing (array [x, y, t]) or press enter : ');
-    if numel(regionInputs)==0
-        regionInputs=[round(size(I,1)/2),round(size(I,2)/2),0.2]
+    t=input('enter seed and threshold for region growing (default 0.2)  : ');
+    if numel(t)==0
+        t=0.2;
     end
-    Iregion=regionGrowing(IpreProc,regionInputs(1),regionInputs(2),regionInputs(3));
+    Iregion=regionGrowing(IpreProc,round(x),round(y),t);
     
     %% post processing : 
     % image filling, connected component analysis (see the function for more
