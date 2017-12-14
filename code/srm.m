@@ -1,12 +1,25 @@
 % Statistical Region Merging
 %
-% Inspired from :
-% Nock, Richard and Nielsen, Frank 2004. Statistical Region Merging. IEEE Trans. Pattern Anal. Mach. Intell. 26, 11 (Nov. 2004), 1452-1458.
-% DOI= http://dx.doi.org/10.1109/TPAMI.2004.110
+% following the paper :
+% Nock, Richard and Nielsen, Frank 2004. Statistical Region Merging
+%
+% and the adaptation from :
+% Celebi & al 2008. Border Detection in Dermoscopy Images Using Statistical Region Merging.
 
-%Segmentation parameter Q; Q small few segments, Q large may segments
 
-function [im_final]=srm(image,Qlevels)
+function [im_final]=srm(image,Q)
+%SRM performs the statistical region merging algorithm
+% [ imSegt ] = srm( imOrig, Q )
+%
+% imOrig can be R,G,B or grayscale image
+% Segmentation parameter Q; Q small few segments, Q large may segments
+% im_final contains the regions, not the segmentation (postprocessing
+% needed)
+
+smallest_region_allowed=10;
+
+size_image=size(image);
+n_pixels=size_image(1)*size_image(2);
 
 % Smoothing the image
 %%%%%%%%%%%%%%%%%%%%%%%%%%    TODO   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -15,11 +28,6 @@ function [im_final]=srm(image,Qlevels)
 h=fspecial('gaussian',[3 3],1);
 image=imfilter(image,h,'symmetric');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-smallest_region_allowed=10;
-
-size_image=size(image);
-n_pixels=size_image(1)*size_image(2);
 
 % Compute image gradient
 [Ix,Iy]=srm_imgGrad(image(:,:,:));
@@ -31,7 +39,6 @@ Iy(end,:)=[];
 
 [~,index]=sort(abs([Iy(:);Ix(:)]));
 
-Q=Qlevels;
 map=reshape(1:n_pixels,size_image(1:2));
 treerank=zeros(size_image(1:2));
 
@@ -101,7 +108,7 @@ pairs2=[ idx1+1;idx2+size_image(1) ];
         map = map_ ;
     end
 
-    im_final=image_seg(map+(1-1)*n_pixels);
+    im_final=image_seg(map);
 
 
 

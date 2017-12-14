@@ -1,7 +1,7 @@
 clear all
 close all
 
-CCA_Enabled = input('enable connected component analysis? (y/n)', 's'); 
+CCA_Enabled = input('enable connected component analysis? (y/n) ', 's'); 
 segtMethod = input('segmentation method (otsu or region): ','s');
 computeOtsu = strcmp(segtMethod,'otsu');
 computeRegion = strcmp(segtMethod,'region');
@@ -53,7 +53,7 @@ for i=1:numel(idList)
 
     %% channel selection
     % converts Ishaved to a grayscale image (here : channel X from CIE-XYZ)
-    channel = 'X';
+    channel = 'blue';
     IpreProc= channelSelect(Ishaved, channel);
 
     %% black frame mask
@@ -143,6 +143,7 @@ plot(get(gca,'xlim'), [mean(diceNevus) mean(diceNevus)],'red');
 plot(jaccardNevus,'d','Color', 'blue')
 plot(get(gca,'xlim'), [mean(jaccardNevus) mean(jaccardNevus)],'blue'); 
 hold off
+axis([0 numel(diceNevus)+1 0 1])
 title('Dice and jaccard indices : nevus')
 legend('dice','average dice','jaccard','average jaccard','Location','SouthWest')
 % set(gca,'XTick',(1:20));
@@ -155,6 +156,7 @@ plot(get(gca,'xlim'), [mean(diceMela) mean(diceMela)],'red');
 plot(jaccardMela,'d','Color', 'blue')
 plot(get(gca,'xlim'), [mean(jaccardMela) mean(jaccardMela)],'blue'); 
 hold off
+axis([0 numel(diceMela)+1 0 1])
 title('Dice and jaccard indices : melanoma')
 legend('dice','average dice','jaccard','average jaccard','Location','SouthWest')
 % set(gca,'XTick',(1:20));

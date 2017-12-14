@@ -3,7 +3,8 @@ clear all
 
 % choose the number of the image (3 last digits)
 imNum = input('image id (3 digits) : ', 's'); 
-segtMethod = input('segmentation method (otsu or region): ','s');
+%segtMethod = input('segmentation method (otsu or region): ','s');
+segtMethod = 'otsu';
 computeOtsu = strcmp(segtMethod,'otsu');
 computeRegion = strcmp(segtMethod,'region');
 compare = strcmp(segtMethod,'compare');
@@ -31,7 +32,7 @@ Ishaved = dullRazor(I);
 
 %% channel selection
 % converts Ishaved to a grayscale image (here : channel X from CIE-XYZ)
-channel = 'X';
+channel = 'blue';
 IpreProc= channelSelect(Ishaved, channel);
 
 %% black frame mask
