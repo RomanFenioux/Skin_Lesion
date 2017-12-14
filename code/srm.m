@@ -1,5 +1,6 @@
-    % Statistical Region Merging
+% Statistical Region Merging
 %
+% Inspired from :
 % Nock, Richard and Nielsen, Frank 2004. Statistical Region Merging. IEEE Trans. Pattern Anal. Mach. Intell. 26, 11 (Nov. 2004), 1452-1458.
 % DOI= http://dx.doi.org/10.1109/TPAMI.2004.110
 
@@ -7,9 +8,13 @@
 
 function [im_final]=srm(image,Qlevels)
 
-% Smoothing the image, comment this line if you work on clean or synthetic images
+% Smoothing the image
+%%%%%%%%%%%%%%%%%%%%%%%%%%    TODO   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%TODO : Celebi's median filtering with size adapted to the size of the
+% image 
 h=fspecial('gaussian',[3 3],1);
 image=imfilter(image,h,'symmetric');
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 smallest_region_allowed=10;
 
@@ -59,9 +64,13 @@ pairs2=[ idx1+1;idx2+size_image(1) ];
         logreg1 = min(g,size_segments(C1))*log(1.0+size_segments(C1));
         logreg2 = min(g,size_segments(C2))*log(1.0+size_segments(C2));
 
+        %%%%%%%%%%% TODO %%%%%%%%%%%%%%%%%%%%%
+        % Check the following lines to see if Q is exactly the Q from the
+        % paper
         dev1=((g*g)/(2.0*Q*size_segments(C1)))*(logreg1 + logdelta);
         dev2=((g*g)/(2.0*Q*size_segments(C2)))*(logreg2 + logdelta);
-
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
         dev=dev1+dev2;
 
         predicat=( (dR<dev) ); 
