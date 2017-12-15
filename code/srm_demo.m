@@ -1,5 +1,9 @@
 close all
-I = double(imread('../data/ISIC-2017_Training_sample/ISIC_0000095.jpg'))/255;
+
+imNum = input('image id (3 digits) : ', 's'); 
+pathIm = '../data/ISIC-2017_Training_sample/';
+imName= strcat('ISIC_0000', imNum, '.jpg');
+I = double(imread(strcat(pathIm, imName)))/255;
 I = I(2:end-1,2:end-1,:);
 I = imresize(I,[512 nan], 'bilinear');
 IpreProc=preProc(I,'X');
