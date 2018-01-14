@@ -24,6 +24,10 @@ function [Igray] = channelSelect(I, channel)
     elseif strcmp(channel, 'b') || strcmp(channel, 'blue')
         Igray = I(:,:,3);
     
+    % selecting V channel from HSV
+    elseif strcmp(channel, 'v') || strcmp(channel, 'V')
+        Igray = max(I,[],3);
+    
     % selecting X channel from CIE-XYZ
     elseif strcmp(channel,'X')
         cR = 0.4125;

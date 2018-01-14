@@ -1,7 +1,11 @@
 clear all
 close all
 
-CCA_Enabled = input('enable connected component analysis? (y/n)', 's'); 
+CCA_Enabled = input('enable connected component analysis? (y/n) ', 's'); 
+segtMethod = input('segmentation method (otsu or region): ','s');
+computeOtsu = strcmp(segtMethod,'otsu');
+computeRegion = strcmp(segtMethod,'region');
+compare = strcmp(segtMethod,'compare');
 
 % inputs
 pathIm = '../data/ISIC-2017_Training_sample/';
@@ -49,7 +53,7 @@ for i=1:numel(idList)
 
     %% channel selection
     % converts Ishaved to a grayscale image (here : channel X from CIE-XYZ)
-    channel = 'X';
+    channel = 'blue';
     IpreProc= channelSelect(Ishaved, channel);
 
     %% black frame mask
@@ -61,13 +65,23 @@ for i=1:numel(idList)
     % we don't take the black borders into account, so these borders may end
     IpreProc=IpreProc-min(IpreProc(~logical(blackM)));
     IpreProc=IpreProc/max(IpreProc(~logical(blackM)));
-
-    %% otsu
-    % Threshold the image using Otsu's paper : 'threshold' is the optimal threshold.
-    % eta is Otsu's separability measure at the optimal threshold. 
-    % it can be used to evaluate the quality of the thresholding. 
-    [threshold, eta] = otsu(IpreProc((IpreProc-2*blackM>0)));
-    I_seuil = double(IpreProc < threshold)-blackM;
+    
+    if computeOtsu
+        %% otsu
+        % Threshold the image using Otsu's paper : 'threshold' is the optimal threshold.
+        % eta is Otsu's separability measure at the optimal threshold. 
+        % it can be used to evaluate the quality of the thresholding. 
+        [threshold, eta] = otsu(IpreProc((IpreProc-2*blackM>0)));
+        I_seuil = double(IpreProc < threshold)-blackM;
+    end
+    
+    if computeRegion
+        figure(1);
+        imshow(IpreProc)
+        [x, y] = ginput(1);
+        t=0.2;
+        I_seuil=regionGrowing(IpreProc,round(x),round(y),t);
+    end
          
     %% Image filling
     %fill the holes in the regions
@@ -87,8 +101,15 @@ for i=1:numel(idList)
         % smaller than 80)
         center=repmat(size(I_seuil)/2,size(stats,1),1);
         distance=sqrt(sum((stats.Centroid-center).^2,2));
-        idx=find([stats.Area]>1000& distance<0.7*size(I_seuil,1));
-
+        %idx=find([stats.Area]>1000& distance<0.7*size(I_seuil,1));
+        idx=find([stats.Area]>1000 &  ...
+               stats.BoundingBox(:,1)>2 & stats.BoundingBox(:,2)>2 & ...
+               stats.BoundingBox(:,1)+stats.BoundingBox(:,3)<size(I_filled,2)-1 & ...
+               stats.BoundingBox(:,2)+stats.BoundingBox(:,4)<size(I_filled,1)-1);
+           
+        if numel(idx)==0
+            idx=find([stats.Area]>1000);
+        end
         % To choose among the big areas, we keep those with a small bounding box
         % (this avoids choosing the black margins)
         %boundingBoxSizes=max([stats.BoundingBox(:,3), stats.BoundingBox(:,4)],[],2);
@@ -122,6 +143,7 @@ plot(get(gca,'xlim'), [mean(diceNevus) mean(diceNevus)],'red');
 plot(jaccardNevus,'d','Color', 'blue')
 plot(get(gca,'xlim'), [mean(jaccardNevus) mean(jaccardNevus)],'blue'); 
 hold off
+axis([0 numel(diceNevus)+1 0 1])
 title('Dice and jaccard indices : nevus')
 legend('dice','average dice','jaccard','average jaccard','Location','SouthWest')
 % set(gca,'XTick',(1:20));
@@ -134,6 +156,7 @@ plot(get(gca,'xlim'), [mean(diceMela) mean(diceMela)],'red');
 plot(jaccardMela,'d','Color', 'blue')
 plot(get(gca,'xlim'), [mean(jaccardMela) mean(jaccardMela)],'blue'); 
 hold off
+axis([0 numel(diceMela)+1 0 1])
 title('Dice and jaccard indices : melanoma')
 legend('dice','average dice','jaccard','average jaccard','Location','SouthWest')
 % set(gca,'XTick',(1:20));
