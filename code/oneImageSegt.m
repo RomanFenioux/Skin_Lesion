@@ -3,8 +3,8 @@ clear all
 
 % choose the number of the image (3 last digits)
 imNum = input('image id (3 digits) : ', 's'); 
-%segtMethod = input('segmentation method (otsu or region): ','s');
-segtMethod = 'otsu';
+segtMethod = input('segmentation method (otsu or region): ','s');
+%segtMethod = 'otsu';
 computeOtsu = strcmp(segtMethod,'otsu');
 computeRegion = strcmp(segtMethod,'region');
 compare = strcmp(segtMethod,'compare');
