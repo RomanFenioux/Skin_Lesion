@@ -23,13 +23,13 @@ timestep=1;  % time step
 mu=0.2/timestep;  % coefficient of the distance regularization term R(phi)
 iter_inner=5;
 iter_outer=20;
-lambda=5; % coefficient of the weighted length term L(phi)
-alfa=-3;  % coefficient of the weighted area term A(phi)
+lambda=2; % coefficient of the weighted length term L(phi)
+alfa=-10;  % coefficient of the weighted area term A(phi)
 epsilon=1.5; % papramater that specifies the width of the DiracDelta function
 
 sigma=.8;    % scale parameter in Gaussian kernel
 G=fspecial('gaussian',15,sigma); % Caussian kernel
-Img_smooth=conv2(Img,G,'same');  % smooth image by Gaussiin convolution
+Img_smooth=conv2(Img,G,'same');  % smooth image by Gaussian convolution
 [Ix,Iy]=gradient(Img_smooth);
 f=Ix.^2+Iy.^2;
 g=1./(1+f);  % edge indicator function.
@@ -37,14 +37,11 @@ g=1./(1+f);  % edge indicator function.
 % initialize LSF as binary step function
 c0=2;
 initialLSF = c0*ones(size(Img));
-% generate the initial region R0 as two rectangles
+% generate the initial region R0 as a rectangles
 figure(1);
 imshow(Img/max(Img(:)))
-input=round(ginput(1));
-x=input(2);
-y=input(1);
-initialLSF(x-5:x+5,y-5:y+5)=-c0; 
-%initialLSF(25:35,40:50)=-c0;
+input=round(ginput()); % input contains 2 points that define a rectangle
+initialLSF(input(1,2):input(2,2),input(1,1):input(2,1))=-c0; % initial contour
 phi=initialLSF;
 
 figure(1);
