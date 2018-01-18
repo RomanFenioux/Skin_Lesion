@@ -21,13 +21,12 @@ smallest_region_allowed=10;
 size_image=size(image);
 n_pixels=size_image(1)*size_image(2);
 
-% Smoothing the image
-%%%%%%%%%%%%%%%%%%%%%%%%%%    TODO   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%TODO : Celebi's median filtering with size adapted to the size of the
+% Smoothing the image : Celebi's median filtering with size adapted to the size of the
 % image 
-h=fspecial('gaussian',[3 3],1);
-image=imfilter(image,h,'symmetric');
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+medsize = floor(5*sqrt(size_image(1)/768*size_image(2)/512));
+image = medfilt2(image,[medsize,medsize]);
+% h=fspecial('gaussian',[3 3],1);
+% image=imfilter(image,h,'symmetric');
 
 % Compute image gradient
 [Ix,Iy]=srm_imgGrad(image(:,:,:));
