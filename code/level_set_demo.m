@@ -23,8 +23,8 @@ timestep=1;  % time step
 mu=0.2/timestep;  % coefficient of the distance regularization term R(phi)
 iter_inner=5;
 iter_outer=20;
-lambda=2; % coefficient of the weighted length term L(phi)
-alfa=-10;  % coefficient of the weighted area term A(phi)
+lambda=10; % coefficient of the weighted length term L(phi)
+alpha=-15;  % coefficient of the weighted area term A(phi)
 epsilon=1.5; % papramater that specifies the width of the DiracDelta function
 
 sigma=.8;    % scale parameter in Gaussian kernel
@@ -37,11 +37,13 @@ g=1./(1+f);  % edge indicator function.
 % initialize LSF as binary step function
 c0=2;
 initialLSF = c0*ones(size(Img));
-% generate the initial region R0 as a rectangles
+% generate the initial region R0 as a set of rectangles
 figure(1);
 imshow(Img/max(Img(:)))
-input=round(ginput()); % input contains 2 points that define a rectangle
-initialLSF(input(1,2):input(2,2),input(1,1):input(2,1))=-c0; % initial contour
+input=round(ginput()); % input contains points that define rectangles
+for i = 1:size(input,1)/2
+    initialLSF(input(2*i-1,2):input(2*i,2),input(2*i-1,1):input(2*i,1))=-c0; % initial contour 
+end
 phi=initialLSF;
 
 figure(1);
@@ -66,26 +68,23 @@ end
 
 % start level set evolution
 for n=1:iter_outer
-phi = level_set(phi, g, lambda, mu, alfa, epsilon, timestep, iter_inner, potentialFunction);    
-if mod(n,2)==0
-    figure(2);
-    imagesc(Img,[0, 255]); axis off; axis equal; colormap(gray); hold on;  contour(phi, [0,0], 'r');
-end
+    phi = level_set(phi, g, lambda, mu, alpha, epsilon, timestep, iter_inner, potentialFunction); 
+     fprintf('iteration = %d / %d\n',n*iter_inner,iter_outer*iter_inner)
 end
 
-% refine the zero level contour by further level set evolution with alfa=0
-alfa=0;
-iter_refine = 10;
-phi = level_set(phi, g, lambda, mu, alfa, epsilon, timestep, iter_inner, potentialFunction);
+% refine the zero level contour by further level set evolution with alpha=0
+alpha=0;
+iter_refine = 20;
+phi = level_set(phi, g, lambda, mu, alpha, epsilon, timestep, iter_refine, potentialFunction);
 
 finalLSF=phi;
-figure(2);
+figure(3);
 imagesc(Img,[0, 255]); axis off; axis equal; colormap(gray); hold on;  contour(phi, [0,0], 'r');
 hold on;  contour(phi, [0,0], 'r');
 str=['Final zero level contour, ', num2str(iter_outer*iter_inner+iter_refine), ' iterations'];
 title(str);
 
-figure;
+figure(4);
 mesh(-finalLSF); % for a better view, the LSF is displayed upside down
 hold on;  contour(phi, [0,0], 'r','LineWidth',2);
 view([-80 35]);

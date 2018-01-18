@@ -26,13 +26,15 @@ function phi = level_set(phi_0, g, lambda,mu, alfa, epsilon, timestep, iter, pot
 %         li_chunming@hotmail.com 
 % URL:  http://www.imagecomputing.org/~cmli/
 
+smallNumber=1e-10; 
+
 phi=phi_0;
 [vx, vy]=gradient(g);
 for k=1:iter
     phi=NeumannBoundCond(phi);
     [phi_x,phi_y]=gradient(phi);
     s=sqrt(phi_x.^2 + phi_y.^2);
-    smallNumber=1e-10;  
+     
     Nx=phi_x./(s+smallNumber); % add a small positive number to avoid division by zero
     Ny=phi_y./(s+smallNumber);
     curvature=div(Nx,Ny);
@@ -51,7 +53,7 @@ end
 
 
 function f = distReg_p2(phi)
-% compute the distance regularization term with the double-well potential p2 in eqaution (16)
+% compute the distance regularization term with the double-well potential p2 in equation (16)
 [phi_x,phi_y]=gradient(phi);
 s=sqrt(phi_x.^2 + phi_y.^2);
 a=(s>=0) & (s<=1);
@@ -61,8 +63,8 @@ dps=((ps~=0).*ps+(ps==0))./((s~=0).*s+(s==0));  % compute d_p(s)=p'(s)/s in equa
 f = div(dps.*phi_x - phi_x, dps.*phi_y - phi_y) + 4*del2(phi);  
 
 function f = div(nx,ny)
-[nxx,junk]=gradient(nx);  
-[junk,nyy]=gradient(ny);
+[nxx,~]=gradient(nx);  
+[~,nyy]=gradient(ny);
 f=nxx+nyy;
 
 function f = Dirac(x, sigma)
