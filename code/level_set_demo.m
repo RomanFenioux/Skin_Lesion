@@ -13,26 +13,24 @@ clear all;
 close all;
 
 imNum = input('image id (3 digits) : ', 's'); 
+
+%[I,T] = getImage(imNum);
+
 pathIm = '../data/ISIC-2017_Training_sample/';
 imName= strcat('ISIC_0000', imNum, '.jpg');
-
-Img=imread(strcat(pathIm, imName));
-Img=double(Img(:,:,1));
+I = double(imread(strcat(pathIm, imName))); % normalization
+% Img=preProc(I,'X');
+Img = I(:,:,3);
 %% parameter setting
 timestep=1;  % time step
 mu=0.2/timestep;  % coefficient of the distance regularization term R(phi)
 iter_inner=5;
-epoch=20;
-lambda=10; % coefficient of the weighted length term L(phi)
-alpha=-15;  % coefficient of the weighted area term A(phi)
-epsilon=1.5; % papramater that specifies the width of the DiracDelta function
+epoch=50;
+lambda=1; % coefficient of the weighted length term L(phi)
+alpha=2;  % coefficient of the weighted area term A(phi)
+epsilon=1.5; % parameter that specifies the width of the DiracDelta function
 
-sigma=.8;    % scale parameter in Gaussian kernel
-G=fspecial('gaussian',15,sigma); % Caussian kernel
-Img_smooth=conv2(Img,G,'same');  % smooth image by Gaussian convolution
-[Ix,Iy]=gradient(Img_smooth);
-f=Ix.^2+Iy.^2;
-g=1./(1+f);  % edge indicator function.
+
 
 % initialize LSF as binary step function
 c0=2;
@@ -40,7 +38,7 @@ initialLSF = c0*ones(size(Img));
 
 %% initial LSF from user input
 figure(1);
-imshow(Img/max(Img(:)))
+imshow(Img,[])
 input=round(ginput()); 
 
 %%%%%%% RECTANGLES %%%%%%%
@@ -57,7 +55,20 @@ mask = roipoly(Img,col,row);
 initialLSF(mask)=-c0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-phi=initialLSF;
+imin=min(row);
+imax=max(row);
+jmin=min(col);
+jmax=max(col);
+Img_temp = Img(imin:imax,jmin:jmax);
+
+phi=initialLSF(imin:imax,jmin:jmax);
+
+sigma=.8;    % scale parameter in Gaussian kernel
+G=fspecial('gaussian',15,sigma); % Caussian kernel
+Img_smooth=conv2(Img_temp,G,'same');  % smooth image by Gaussian convolution
+[Ix,Iy]=gradient(Img_smooth);
+f=Ix.^2+Iy.^2;
+g=1./(1+f);  % edge indicator function.
 
 figure(1);
 mesh(-phi);   % for a better view, the LSF is displayed upside down
@@ -66,7 +77,7 @@ title('Initial level set function');
 view([-80 35]);
 
 figure(2);
-imagesc(Img,[0, 255]); axis off; axis equal; colormap(gray); hold on;  contour(phi, [0,0], 'r');
+imshow(Img_temp,[]); hold on;  contour(phi, [0,0], 'r');
 title('Initial zero level contour');
 pause(0.5);
 
@@ -88,24 +99,19 @@ end
 
 % refine the zero level contour by further level set evolution with alpha=0
 alpha=0;
-iter_refine = 20;
+iter_refine = 50;
 phi = level_set(phi, g, lambda, mu, alpha, epsilon, timestep, iter_refine, potentialFunction);
 
-finalLSF=phi;
+Isegt=zeros(size(Img(:,:,1)));
+Isegt(imin:imax,jmin:jmax)=double(phi<0);
+
 figure(3);
-imagesc(Img,[0, 255]); axis off; axis equal; colormap(gray); hold on;  contour(phi, [0,0], 'r');
-hold on;  contour(phi, [0,0], 'r');
+imshow(Img,[]); hold on;  contour(Isegt, 'r');
 str=['Final zero level contour, ', num2str(epoch*iter_inner+iter_refine), ' iterations'];
 title(str);
 
-figure(4);
-mesh(-finalLSF); % for a better view, the LSF is displayed upside down
+figure;
+mesh(-phi);   % for a better view, the LSF is displayed upside down
 hold on;  contour(phi, [0,0], 'r','LineWidth',2);
+title('final level set function');
 view([-80 35]);
-str=['Final level set function, ', num2str(epoch*iter_inner+iter_refine), ' iterations'];
-title(str);
-axis on;
-[nrow, ncol]=size(Img);
-axis([1 ncol 1 nrow -5 5]);
-set(gca,'ZTick',[-3:1:3]);
-set(gca,'FontSize',14)
