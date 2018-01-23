@@ -19,6 +19,7 @@ backgroundcolor=OliveGreen!25,bordercolor=OliveGreen,#1]{#2}}
 %opening
 \title{PRIM Project\\ Segmentation of skin lesions}
 \author{Roman Fenioux}
+\date{September 2017 - January 2018}
 
 \begin{document}
 \maketitle
@@ -28,8 +29,9 @@ In this project I will compare different segmentation methods for skin lesions.
 \tobecompleted{intro about skin lesion, importance, etc...}
 \end{abstract}
 
-\section{Segmentation}
-\subsection{Thresholding}
+
+\section{Thresholding}
+\subsection{Method}
 \paragraph{}
 The easiest method that comes to mind is thresholding since the skin lesions are 
 usually darker than the surrounding skin. Given a grayscale image, we can 
@@ -49,11 +51,68 @@ obtained, as defined in equation \ref{eq:otsuvariance}.
   k^* = \argmax_{1<k<L} \sigma_B^2(k)   
 \end{equation}
 
-\subsection{Region based segmentation}
+\subsection{Implementation}
+- description of the otsu implementation
+\tobecompleted{explanation about the implementation}
+
+\subsection{Amelioration}
+\paragraph{specific preprocessing:}
+The segmentation performance is influence by the color space used. Some methods 
+\tobecompleted{cite them} simply use the blue channel from RGB colorspace, but 
+Garnavi, Celebi and al~\cite{Garnavi2010} have shown that, at least for a 
+threshold-based approach, the X channel from CIE-XYZ color space gives better performances. A comparaison of the segmentation results can be seen in the figure \ref{fig:color-channel-otsu}
+
+\begin{figure}
+	
+	\begin{subfigure}{0.7\textwidth}
+		\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-B.png} 
+		\caption{blue channel}
+		\label{fig:otsu-blue}
+	\end{subfigure}
+	\begin{subfigure}{0.7\textwidth}
+		\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-R.png}
+		\caption{red channel}
+		\label{fig:otsu-red}
+	\end{subfigure}
+	\begin{subfigure}{0.7\textwidth}
+		\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-G.png}
+		\caption{green channel}
+		\label{fig:otsu-green}
+	\end{subfigure}
+	\begin{subfigure}{0.7\textwidth}
+		\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-meanRGB.png}
+		\caption{RGB average}
+		\label{fig:otsu-mean}
+	\end{subfigure}
+	\begin{subfigure}{0.7\textwidth}
+		\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-X.png}
+		\caption{channel X from CIE-XYZ}
+		\label{fig:otsu-X}
+	\end{subfigure}
+	
+	\caption{Color channel influence on Otsu thresholding performances}
+	\label{fig:color-channel-otsu}
+\end{figure} \tobecompleted{unclear ! not the best way to show these results... }
+
+
+\paragraph{specific postprocessing:}
+- morphological filling
+- connected component analysis with several steps (the black border problem)
+
+\subsection{Results}
+\tobecompleted{dice and jaccard indices}
+
+\section{Region based segmentation}
+\subsection{Method}
 \paragraph{} Statistical Region Merging~\cite{nock_statistical_2004} has been 
 used by Celebi and al~\cite{celebi_border_2008} to perform a fast and efficient 
 segmentation of skin lesions. This approach consists in merging regions in a particular order, with a statistical criterion.
+\subsection{Implementation}
 
+\section{Parametric active contours}
+\subsection{Method}
+\paragraph{}  Distance Regularized Level Set Evolution \cite{li2010distance} \tobecompleted{method description}
+\subsection{Implementation}
 
 \section{Pre-processing}
 \subsection{Hair removal}
@@ -71,45 +130,6 @@ applied on the pixels located in the enlarged hair regions
  (morphological dilatation of the hair mask).
 \end{enumerate}
 
-
-\subsection{Color space}
-The segmentation performance is influence by the colorspace used. Some methods 
-\tobecompleted{cite them} simply use the blue channel from RGB colorspace, but 
-Garnavi, Celebi and al~\cite{Garnavi2010} have shown that, at least for a 
-threshold-based approach, the X channel from CIE-XYZ color space gives better 
-performances.
-
-\begin{figure}
-
-  \begin{subfigure}{0.7\textwidth}
-    \includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-B.png} 
-    \caption{blue channel}
-    \label{fig:otsu-blue}
-  \end{subfigure}
-  \begin{subfigure}{0.7\textwidth}
-    \includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-R.png}
-    \caption{red channel}
-    \label{fig:otsu-red}
-  \end{subfigure}
-  \begin{subfigure}{0.7\textwidth}
-    \includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-G.png}
-    \caption{green channel}
-    \label{fig:otsu-green}
-  \end{subfigure}
-  \begin{subfigure}{0.7\textwidth}
-    \includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-meanRGB.png}
-    \caption{RGB average}
-    \label{fig:otsu-mean}
-  \end{subfigure}
-  \begin{subfigure}{0.7\textwidth}
-    \includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-X.png}
-    \caption{channel X from CIE-XYZ}
-    \label{fig:otsu-X}
-  \end{subfigure}
-
-  \caption{Color channel influence on Otsu thresholding performances}
-  \label{fig:color-channel-otsu}
-\end{figure} \tobecompleted{unclear ! not the best way to show these results... }
 
 
 \bibliographystyle{plain}

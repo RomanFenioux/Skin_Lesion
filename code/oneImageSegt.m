@@ -125,7 +125,7 @@ if computeLevelSet
     
     % display initial zero level contour
     figure(1);
-    imshow(I_small);
+    imshow(I_small/255);
     hold on; contour(phi, [0,0], 'r'); hold off;
     title('Initial zero level contour');
     pause(0.2)
@@ -170,13 +170,15 @@ if computeLevelSet
     phi = level_set(phi, g, lambda, mu, alpha, epsilon, timestep, iter_refine, potentialFunction);
     
     % back to full size
-    IsegtLevelSet=zeros(size(Img(:,:,1)));
+    IsegtLevelSet=zeros(size(I(:,:,1)));
     IsegtLevelSet(imin:imax,jmin:jmax) = double(-phi>0);
     
     %% evaluation
     % compute dice and jaccard index
     dLevelSet = dice(IsegtLevelSet, T);
     jLevelSet = jaccard(IsegtLevelSet,T);
+    
+    IpreProc=IpreProc/255;
 end
 
 

@@ -108,7 +108,7 @@ function [ Ishaved ] = dullRazor( I )
             % neighbors are valid only if both are outside of the hair : their
             % positions in the mask should both have a value of 1 (-> we multiply the 2 row)
             validneighbors=1-neighbors(1,:).*neighbors(2,:);
-            [maxvalue, firstbestneighbor]=max(validneighbors);
+            [~, firstbestneighbor]=max(validneighbors);
         end
         
         switch firstbestneighbor
