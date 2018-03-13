@@ -17,7 +17,7 @@ backgroundcolor=OliveGreen!25,bordercolor=OliveGreen,#1]{#2}}
 \DeclareMathOperator*{\argmax}{argmax} 
 
 %opening
-\title{PRIM Project\\ Segmentation of skin lesions}
+\title{PRIM Project\\ Comparison of segmentation methods for skin lesions in dermoscopy images}
 \author{Roman Fenioux}
 \date{September 2017 - January 2018}
 
@@ -25,10 +25,16 @@ backgroundcolor=OliveGreen!25,bordercolor=OliveGreen,#1]{#2}}
 \maketitle
 \newpage
 \begin{abstract}
-In this project I will compare different segmentation methods for skin lesions. 
-\tobecompleted{intro about skin lesion, importance, etc...}
-\end{abstract}
+In this project I will compare different segmentation methods for skin lesions in dermoscopy images. 
 
+%TODO importance of skin lesion analysis : helps the diagnosis of melanoma, melanoma is very bad, high cost for dermatologist because lot of images to see, automated and semi automated procedure could speed up the process and make it easier + reduce inter- and intra-expert variability because more reproductible (discuss influence of initialisation), it provides quantitative information. And segmentation specifically : first step for classif, allows shape analysis and localised feature extraction
+
+\end{abstract}
+\section*{Introduction}
+%TODO explain ISIC challenge data, what is ISIC, etc...
+%TODO reference all bibliography, what has been done and how...
+This kind of work has already been done by Mendoça and al~\cite{mendonca_comparison_2007}, however ... 
+deep learning approach : difficult because not many images, etc...
 
 \section{Thresholding}
 \subsection{Method}
@@ -36,9 +42,9 @@ In this project I will compare different segmentation methods for skin lesions.
 The easiest method that comes to mind is thresholding since the skin lesions are 
 usually darker than the surrounding skin. Given a grayscale image, we can 
 classify pixels as being part of the region of interest (ROI) or of the 
-background based on their intensities.
+background based on their intensities. However, using an absolute threshold for all images is not possible because of the variability 
 \paragraph{} Otsu~\cite{Otsu1979} \tobecompleted{Otsu algorithm description}
-Our objective is to find a good threshold to separate the lesion from the 
+The objective is to find a good threshold to separate the lesion from the 
 surrounding skin. Otsu's approach consist seeing the histogram as a probability 
 distribution, and then choosing the threshold that maximizes the separability 
 measure $\eta$ or equivalently the variance $\sigma_B^2$ between the two classes 
@@ -57,10 +63,9 @@ obtained, as defined in equation \ref{eq:otsuvariance}.
 
 \subsection{Amelioration}
 \paragraph{specific preprocessing:}
-The segmentation performance is influence by the color space used. Some methods 
-\tobecompleted{cite them} simply use the blue channel from RGB colorspace, but 
-Garnavi, Celebi and al~\cite{Garnavi2010} have shown that, at least for a 
-threshold-based approach, the X channel from CIE-XYZ color space gives better performances. A comparaison of the segmentation results can be seen in the figure \ref{fig:color-channel-otsu}
+The segmentation performance is influence by the color space used. Although~\cite{mendonca_comparison_2007} simply uses the blue channel from RGB color space, but 
+Garnavi, Celebi and al~\cite{Garnavi2010} have shown that for a 
+threshold-based approach the X channel from CIE-XYZ color space gives better performances. A comparison of the segmentation results can be seen in the figure \ref{fig:color-channel-otsu}
 
 \begin{figure}
 	
@@ -95,7 +100,7 @@ threshold-based approach, the X channel from CIE-XYZ color space gives better pe
 \end{figure} \tobecompleted{unclear ! not the best way to show these results... }
 
 
-\paragraph{specific postprocessing:}
+\paragraph{specific post-processing:}
 - morphological filling
 - connected component analysis with several steps (the black border problem)
 
@@ -123,13 +128,20 @@ hair removal. It consists in the following steps:
  \item Locating dark hair with a grayscale morphological closing operation with 
 vertical, horizontal and diagonals structure elements on the three RGB channels. 
 We obtain the hair mask by thresholding the absolute difference with the 
-original image.
+original image. 
  \item Denoising the hair mask and interpolating the hair pixels with neighbor 
 non-hair pixels. 
- \item Removing the remaining hair artefacts with an adapted median filter, only 
+ \item Removing the remaining hair artifacts with an adapted median filter, only 
 applied on the pixels located in the enlarged hair regions
  (morphological dilatation of the hair mask).
 \end{enumerate}
+The drawback of this method is all parameters are adapted to be efficient on 512x486 pixels images, whereas the dataset used here contains high resolution images of different sizes (from 720x538 to 2814x2110). The images where therefore resized to the smallest resolution to reduce runtime of the segmentation algorithms and the parameters of the hair removal algorithm were adapted to fit this resolution.
+
+\section*{Conclusion}
+%TODO Quality of groundtruth : difficult to have a gold standard because of fuzzy borders, etc... here there was a problem because 2 methods of Manual segmentation were used.
+%TODO Complementarity of the different methods
+%TODO automatic criterion to decide between the different methods ? (example presence of hair, global initial contrast, etc... complicated...)
+%TODO discuss quality of the method used
 
 
 
