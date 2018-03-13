@@ -16,8 +16,8 @@ compare = strcmp(segtMethod,'compare');
 [I,T] = getImage(imNum);
 
 % resize for dullRazor (optional but important for hairy images)
-I = imresize(I,[512 nan], 'bilinear');
-T = imresize(T,[512 nan], 'nearest'); % 'nearest' preserves T as a binary mask
+I = imresize(I,[538 720], 'bilinear');
+T = imresize(T,[538 720], 'nearest'); % 'nearest' preserves T as a binary mask
 
 
 %% dullRazor
@@ -187,7 +187,7 @@ if compare
     displayResult(IpreProc, T, IsegtOtsu, IsegtRegion)
     title(sprintf('comparison between the segmentation methods'))
 elseif computeOtsu
-    displayResult(IpreProc, T, IsegtOtsu);
+    displayResult(I, T, IsegtOtsu);
     title(sprintf('Otsu Threshold on image %s : dice = %g, jaccard = %g',imNum,dotsu,jotsu))
 elseif computeRegion
     displayResult(IpreProc, T, IsegtRegion);

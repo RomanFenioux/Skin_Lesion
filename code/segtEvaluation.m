@@ -35,16 +35,9 @@ for i=1:numel(idList)
     %% read image and ground truth
     % read image, normalize values between 0 and 1, resize (for dullRazor)
     
-    imName= strcat('ISIC_0000', idList{i}, '.jpg');
-    I = double(imread(strcat(pathIm, imName)))/255;
-    I = I(2:end-1,2:end-1,:);
-    I = imresize(I,[512 680], 'bilinear');
-
-    % read groundtruth mask, normalize, resize
-    truthName= strcat('ISIC_0000', idList{i}, '_segmentation.png');
-    T = double(imread(strcat(pathTruth, truthName)))/255;
-    T = T(2:end-1,2:end-1,:);
-    T = imresize(T,[512 680], 'nearest');
+    [I, T] = getImage(idList{i});
+    I = imresize(I,[538 720], 'bilinear');
+    T = imresize(T,[538 720], 'nearest');
     
     %% dullRazor
     % hair removal using the dullRazor algorithm. Ishaved and I are RGB images

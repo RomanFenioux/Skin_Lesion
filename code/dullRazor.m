@@ -23,35 +23,40 @@ function [ Ishaved ] = dullRazor( I )
     Ib = I(:,:,3);
     
     % 3 structure elements (vertical, horizontal, 45 degree)
-    SE0  =  [0 1 1 1 1 1 1 0];
-    SE45 =  [0 0 0 0 0 0 0 0;
-             0 1 0 0 0 0 0 0;
-             0 0 1 0 0 0 0 0;
-             0 0 0 1 0 0 0 0;
-             0 0 0 0 1 0 0 0;
-             0 0 0 0 0 1 0 0;
-             0 0 0 0 0 0 1 0;
-             0 0 0 0 0 0 0 0;];
-    SE135=  [0 0 0 0 0 0 0 0;
-             0 0 0 0 0 0 1 0;
-             0 0 0 0 0 1 0 0;
-             0 0 0 0 1 0 0 0;
-             0 0 0 1 0 0 0 0;
-             0 0 1 0 0 0 0 0;
-             0 1 0 0 0 0 0 0;
-             0 0 0 0 0 0 0 0;];
-    SE90 =  [0; 1; 1; 1; 1; 1; 1; 0];
+    SE0  =  [0, 1, 1, 1, 1, 1, 1, 1, 1, 0];
+    SE90 =  [0; 1; 1; 1; 1; 1; 1; 1; 1; 0];
+    SE45 =  [0 0 0 0 0 0 0 0 0 0;
+             0 1 0 0 0 0 0 0 0 0;
+             0 0 1 0 0 0 0 0 0 0;
+             0 0 0 1 0 0 0 0 0 0;
+             0 0 0 0 1 0 0 0 0 0;
+             0 0 0 0 0 1 0 0 0 0;
+             0 0 0 0 0 0 1 0 0 0;
+             0 0 0 0 0 0 0 1 0 0;
+             0 0 0 0 0 0 0 0 1 0;
+             0 0 0 0 0 0 0 0 0 0;];
+    SE135=  [0 0 0 0 0 0 0 0 0 0;
+             0 0 0 0 0 0 0 0 1 0;
+             0 0 0 0 0 0 0 1 0 0;
+             0 0 0 0 0 0 1 0 0 0;
+             0 0 0 0 0 1 0 0 0 0;
+             0 0 0 0 1 0 0 0 0 0;
+             0 0 0 1 0 0 0 0 0 0;
+             0 0 1 0 0 0 0 0 0 0;
+             0 1 0 0 0 0 0 0 0 0;
+             0 0 0 0 0 0 0 0 0 0;];
     
     % compute the morphological closing on each channel with the 3 SE
     Irclose = cat(3, imclose(Ir,SE0),imclose(Ir,SE45), imclose(Ir,SE90), imclose(Ir,SE135));
     Igclose = cat(3, imclose(Ig,SE0),imclose(Ig,SE45), imclose(Ig,SE90), imclose(Ig,SE135));
     Ibclose = cat(3, imclose(Ib,SE0),imclose(Ib,SE45), imclose(Ib,SE90), imclose(Ib,SE135));
-
+    
+    
     % compute the closing masks on each channel with a heuristic threshold
     Gr = abs(Ir-max(Irclose,[],3));
     Gg = abs(Ig-max(Igclose,[],3));
     Gb = abs(Ib-max(Ibclose,[],3));
-    
+   
     Mr = double(Gr>maskThreshold);
     Mg = double(Gg>maskThreshold);
     Mb = double(Gb>maskThreshold);
@@ -65,8 +70,8 @@ function [ Ishaved ] = dullRazor( I )
     % hairDenoise : if a pixels is not connected to a line (=a hair) then
     % this pixel is removed from M. See hairDenoise for further details
     
-    Md=hairDenoise(M);
-    
+    %Md=hairDenoise(M);
+    Md=M;
     
     % linear interpolation. To avoid using hair pixel for the
     % interpolation we give ourselves 4 chances for finding pixels outside 
@@ -127,13 +132,15 @@ function [ Ishaved ] = dullRazor( I )
     %% 3d step : remove artifacts
     
     % binary dilatation of the hair mask
-    SEdilat = [0 0 0 0 0 0 0;
-               0 1 1 1 1 1 0;
-               0 1 1 1 1 1 0;
-               0 1 1 1 1 1 0;
-               0 1 1 1 1 1 0;
-               0 1 1 1 1 1 0;
-               0 0 0 0 0 0 0;];
+    SEdilat = [0 0 0 0 0 0 0 0 0;
+               0 1 1 1 1 1 1 1 0;
+               0 1 1 1 1 1 1 1 0;
+               0 1 1 1 1 1 1 1 0;
+               0 1 1 1 1 1 1 1 0;
+               0 1 1 1 1 1 1 1 0;
+               0 1 1 1 1 1 1 1 0;
+               0 1 1 1 1 1 1 1 0;
+               0 0 0 0 0 0 0 0 0;];
     Mdilat= imdilate(Md, SEdilat);
     
     % adaptative median filter : we only apply it on the pixel of the
