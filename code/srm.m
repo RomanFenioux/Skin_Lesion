@@ -4,8 +4,7 @@
 % Nock, Richard and Nielsen, Frank 2004. Statistical Region Merging
 %
 % and the adaptation from :
-% Celebi & al 2008. Border Detection in Dermoscopy Images Using Statistical Region Merging.
-
+% Celebi & al 2008. Border Detection in Dermoscopy Images Using Statistical Region Merging
 
 function [im_final]=srm(image,Q)
 %SRM performs the statistical region merging algorithm
@@ -108,12 +107,3 @@ pairs2=[ idx1+1;idx2+size_image(1) ];
     end
 
     im_final=image_seg(map);
-
-
-
-
-
-
-
-
-

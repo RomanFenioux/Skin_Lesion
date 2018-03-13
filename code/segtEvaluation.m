@@ -20,7 +20,6 @@ idList = [idNevus idMelanoma];
 segtList=[];
 diceList=zeros(numel(idList),1);
 jaccardList=zeros(numel(idList),1);
-
                 
 for i=1:numel(idList)
     
@@ -165,5 +164,3 @@ legend('dice','average dice','jaccard','average jaccard','Location','SouthWest')
 set(0, 'units', 'points')
 p=get(0,'screensize');
 set(F,'Position',[0.25*p(3) 0.25*p(4) 1.3*p(3) p(4)])
-
-

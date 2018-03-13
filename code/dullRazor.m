@@ -59,8 +59,6 @@ function [ Ishaved ] = dullRazor( I )
     % the final mask M is the union of the 3 masks obtained on each channel
     M=max(cat(3,Mr,Mg,Mb), [], 3);
     
-    
-    
     %% 2d step : denoising and interpolation of the removed hair
     
     % we check all hair pixels in M to remove the outliers with the function
@@ -160,4 +158,3 @@ function [ Ishaved ] = dullRazor( I )
 
     
 end
-

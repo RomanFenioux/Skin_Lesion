@@ -23,4 +23,3 @@ else
     legend('segmentation','Truth')
 end
 end
-

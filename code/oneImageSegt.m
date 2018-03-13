@@ -181,7 +181,6 @@ if computeLevelSet
     IpreProc=IpreProc/255;
 end
 
-
 %% display
 % display the segmentation and tuth for visual evaluation of the results
 if compare
@@ -197,5 +196,3 @@ elseif computeLevelSet
     displayResult(IpreProc, T, IsegtLevelSet);
     title(sprintf('Region Growing on image %s : dice = %g, jaccard = %g',imNum,dLevelSet,jLevelSet))
 end
-
-

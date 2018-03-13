@@ -9,11 +9,9 @@ imName= strcat('ISIC_0000', imNum, '.jpg');
 img = double(imread(strcat(pathIm, imName)))/255; % normalization
 img = img(2:end-1,2:end-1,:); % crop because of artifacts on some images
 
-
 pathTruth = '../data/ISIC-2017_GroundTruth_sample/'; 
 truthName= strcat('ISIC_0000', imNum, '_segmentation.png');
 groundTruth = double(imread(strcat(pathTruth, truthName)))/255; % normalize
 groundTruth = groundTruth(2:end-1,2:end-1,:); % crop to match the image
 
 end
-

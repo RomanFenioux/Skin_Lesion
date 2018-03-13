@@ -4,4 +4,3 @@ function [ d ] = dice( segIm, grndTruth )
     d = 2*nnz(segIm & grndTruth)/(nnz(segIm) + nnz(grndTruth));
 
 end
-

@@ -170,4 +170,3 @@ function [Mdenoised] = hairDenoise(M)
 %     end
     
 end
-

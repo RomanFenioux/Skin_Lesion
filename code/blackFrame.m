@@ -22,4 +22,3 @@ function [blackM] = blackFrame(I,threshold)
     blackM=double(ismember(labelmatrix(CC),idx));
     
 end
-

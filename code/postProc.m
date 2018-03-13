@@ -24,4 +24,3 @@ function [IpostProc] = postProc(I)
     IpostProc=double(ismember(labelmatrix(CC),idx));
     
 end
-

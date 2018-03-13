@@ -4,4 +4,3 @@ function [ j ] = jaccard( segIm, grndTruth )
     j= nnz(segIm & grndTruth)/(nnz(segIm | grndTruth));
 
 end
-

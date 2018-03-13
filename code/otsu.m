@@ -4,7 +4,6 @@ function [ k_optim, eta_optim ] = otsu( I )
 %   I is the original grey level image with values between 0 and 1.
 %   k_optim is the optimal threshold computed from the image I
 %   eta_optim is the separability measure at k_optim in otsu's method
-
     
     I=double(I); % just to be sure
 
@@ -44,10 +43,6 @@ function [ k_optim, eta_optim ] = otsu( I )
     % we calculate eta
     % it can be useful for the evaluation of the quality of the segmentation (if eta is
     % small, it is likely that thresholding methods won't give good results)
-    eta_optim = sigma_B2 / sigma_T2;
-        
-    
-
-
+    eta_optim = sigma_B2 / sigma_T2;       
 end
 

@@ -12,7 +12,6 @@ function [ IpreProc, blackM ] = preProc( I, channel )
 %   Different segmentation methods will need different preprocessing.
 %   For now preProc merely removes hair, using Dullrazor method and changes
 %   the color channel.
-  
     
     %% dullRazor
     % hair removal using the dullRazor algorithm. Ishaved and I are RGB images
@@ -33,4 +32,3 @@ function [ IpreProc, blackM ] = preProc( I, channel )
     IpreProc=IpreProc/max(IpreProc(~logical(blackM)));
 
 end
-

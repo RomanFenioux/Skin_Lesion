@@ -40,6 +40,4 @@ function [Igray] = channelSelect(I, channel)
         warning('non existent or invalid channel argument : assumed meanRGB')
         Igray = sum(I,3)/3;
     end
-
 end
-
