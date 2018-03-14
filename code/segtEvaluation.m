@@ -7,6 +7,12 @@ computeOtsu = strcmp(segtMethod,'otsu');
 computeRegion = strcmp(segtMethod,'region');
 compare = strcmp(segtMethod,'compare');
 
+% Preprocessing and postprocessing options
+hair_removal = true;
+compute_blackframe = true;
+compute_filling = true;
+compute_CCA = strcmp(CCA_Enabled,'y');
+
 % inputs
 pathIm = '../data/ISIC-2017_Training_sample/';
 pathTruth = '../data/ISIC-2017_GroundTruth_sample/';
@@ -20,6 +26,7 @@ idList = [idNevus idMelanoma];
 segtList=[];
 diceList=zeros(numel(idList),1);
 jaccardList=zeros(numel(idList),1);
+etaList=zeros(numel(idList),1);
                 
 for i=1:numel(idList)
     
@@ -65,6 +72,7 @@ for i=1:numel(idList)
         % it can be used to evaluate the quality of the thresholding. 
         [threshold, eta] = otsu(IpreProc((IpreProc-2*blackM>0)));
         I_seuil = double(IpreProc < threshold)-blackM;
+        etaList(i)=eta;
     end
     
     if computeRegion
@@ -74,43 +82,9 @@ for i=1:numel(idList)
         t=0.2;
         I_seuil=regionGrowing(IpreProc,round(x),round(y),t);
     end
-         
-    %% Image filling
-    %fill the holes in the regions
-    I_filled=imfill(I_seuil,'holes');
     
-    %% Connected component analysis
-    if strcmp(CCA_Enabled,'y')
-       
-
-        %% Connected component analysis
-        % connected component
-        CC=bwconncomp(I_filled);
-        % Compute the areas and the bounding box of each component
-        stats=regionprops('table',CC,'Area','BoundingBox','Centroid');
-        % keep only the components with a sufficient area and centered (heuristic, but this is
-        % not very sensitive, because lesions are way bigger, and noise is way
-        % smaller than 80)
-        center=repmat(size(I_seuil)/2,size(stats,1),1);
-        distance=sqrt(sum((stats.Centroid-center).^2,2));
-        %idx=find([stats.Area]>1000& distance<0.7*size(I_seuil,1));
-        idx=find([stats.Area]>1000 &  ...
-               stats.BoundingBox(:,1)>2 & stats.BoundingBox(:,2)>2 & ...
-               stats.BoundingBox(:,1)+stats.BoundingBox(:,3)<size(I_filled,2)-1 & ...
-               stats.BoundingBox(:,2)+stats.BoundingBox(:,4)<size(I_filled,1)-1);
-           
-        if numel(idx)==0
-            idx=find([stats.Area]>1000);
-        end
-        % To choose among the big areas, we keep those with a small bounding box
-        % (this avoids choosing the black margins)
-        %boundingBoxSizes=max([stats.BoundingBox(:,3), stats.BoundingBox(:,4)],[],2);
-        %[~,argmin]=min(boundingBoxSizes(idx));
-        Isegt=double(ismember(labelmatrix(CC),idx));
-
-    elseif strcmp(CCA_Enabled,'n')
-        Isegt=I_seuil;
-    end
+    Isegt=postProc(I_seuil,compute_filling, compute_CCA, compute_blackframe);
+    
     %% evaluation
     % compute dice and jaccard index 
     diceList(i) = dice(Isegt, T);
@@ -121,39 +95,45 @@ end
 
 diceNevus=diceList(1:numel(idNevus));
 jaccardNevus=jaccardList(1:numel(idNevus));
+etaNevus=etaList(1:numel(idNevus));
 
 diceMela=diceList(numel(idNevus)+1:end);
 jaccardMela=jaccardList(numel(idNevus)+1:end);
+etaMela=etaList(numel(idNevus)+1:end);
 %% display
 % plot the dice and jaccard indices for all images
 
 F=figure;
 subplot(1,2,1)
-plot(diceNevus,'s','Color','red')
+plot(diceNevus,'-s','Color','red')
 hold on
 plot(get(gca,'xlim'), [mean(diceNevus) mean(diceNevus)],'red'); 
-plot(jaccardNevus,'d','Color', 'blue')
+plot(jaccardNevus,'-d','Color', 'blue')
 plot(get(gca,'xlim'), [mean(jaccardNevus) mean(jaccardNevus)],'blue'); 
+plot(etaNevus,'-o','Color', 'green')
 hold off
 axis([0 numel(diceNevus)+1 0 1])
 title('Dice and jaccard indices : nevus')
-legend('dice','average dice','jaccard','average jaccard','Location','SouthWest')
+legend('dice','average dice','jaccard','average jaccard','eta','Location','SouthWest')
 % set(gca,'XTick',(1:20));
 % set(gca,'XTickLabel',idNevus);
 
 subplot(1,2,2)
-plot(diceMela,'s','Color','red')
+plot(diceMela,'-s','Color','red')
 hold on
 plot(get(gca,'xlim'), [mean(diceMela) mean(diceMela)],'red'); 
-plot(jaccardMela,'d','Color', 'blue')
+plot(jaccardMela,'-d','Color', 'blue')
 plot(get(gca,'xlim'), [mean(jaccardMela) mean(jaccardMela)],'blue'); 
+plot(etaMela,'-o','Color', 'green')
+
 hold off
 axis([0 numel(diceMela)+1 0 1])
 title('Dice and jaccard indices : melanoma')
-legend('dice','average dice','jaccard','average jaccard','Location','SouthWest')
+legend('dice','average dice','jaccard','average jaccard','eta','Location','SouthWest')
 % set(gca,'XTick',(1:20));
 % set(gca,'XTickLabel',idMelanoma);
 
 set(0, 'units', 'points')
 p=get(0,'screensize');
 set(F,'Position',[0.25*p(3) 0.25*p(4) 1.3*p(3) p(4)])
+

@@ -43,7 +43,7 @@ if CCA
             stats.BoundingBox(:,1)+stats.BoundingBox(:,3)<size(IpostProc,2)-1 & ...
             stats.BoundingBox(:,2)+stats.BoundingBox(:,4)<size(IpostProc,1)-1);
     end
-    if ~clear_border | numel(idx)==0 % default if no region can fulfill the conditions
+    if ~clear_border || numel(idx)==0 % default if no region can fulfill the conditions
         idx=find([stats.Area]>1000);
     end
     IpostProc=double(ismember(labelmatrix(CC),idx));

@@ -9,8 +9,12 @@ computeOtsu = strcmp(segtMethod,'otsu');
 computeRegion = strcmp(segtMethod,'region');
 computeLevelSet = strcmp(segtMethod,'levelset');
 compare = strcmp(segtMethod,'compare');
+
+% Preprocessing and postprocessing options
 hair_removal = true;
-compute_blackframe = false;
+compute_blackframe = true;
+compute_filling = true;
+compute_CCA = true;
 
 %% read image and ground truth
 % custom function that reads an image and the ground truth mask
@@ -21,30 +25,11 @@ compute_blackframe = false;
 I = imresize(I,[538 720], 'bilinear');
 T = imresize(T,[538 720], 'nearest'); % 'nearest' preserves T as a binary mask
 
+%%%%%%%% PREPROCESSING STAGE %%%%%%%%%%
+channel='blue';
+[IpreProc, blackM, Ishaved]=preProc(I,channel, hair_removal, compute_blackframe);
 
-%% dullRazor
-% hair removal using the dullRazor algorithm. Ishaved and I are RGB images
-Ishaved = I;
-if hair_removal
-    Ishaved = dullRazor(I);
-end
-%% channel selection
-% converts Ishaved to a grayscale image (here : channel X from CIE-XYZ)
-channel = 'blue';
-IpreProc= channelSelect(Ishaved, channel);
-
-%% black frame mask
-% blackM is a binary mask that equals 1 on the black borders of the image I
-blackM = zeros(size(IpreProc));
-if compute_blackframe 
-    blackM = blackFrame(IpreProc,0.2); 
-end
-%% maximize dynamic range
-% we don't take the black borders into account, so these black area may end
-% up negative if their intensity is lower than the computed minimum
-IpreProc=IpreProc-min(IpreProc(~logical(blackM)));
-IpreProc=IpreProc/max(IpreProc(~logical(blackM)));
-
+%%%%%%%%%%% SEGMENTATION STAGE %%%%%%%%%%%%%%
 if computeOtsu || compare
     %% otsu
     % Threshold the image using Otsu's paper : 'threshold' is the optimal
@@ -55,11 +40,11 @@ if computeOtsu || compare
     % -2*blackM : negative on the black border region, unchanged elsewhere
     [threshold, eta] = otsu(IpreProc((IpreProc-2*blackM)>0));
     Iotsu = double(IpreProc < threshold)-blackM;
-    
+
     %% post processing : 
     % image filling, connected component analysis (see the function for
     % more details.
-    IsegtOtsu=postProc(Iotsu,true, true, false);
+    IsegtOtsu=postProc(Iotsu,compute_filling, compute_CCA, false);
     
         %% evaluation
     % compute dice and jaccard index
@@ -193,7 +178,7 @@ if compare
     displayResult(IpreProc, T, IsegtOtsu, IsegtRegion)
     title(sprintf('comparison between the segmentation methods'))
 elseif computeOtsu
-    displayResult(I, T, IsegtOtsu);
+    displayResult(IpreProc, T, IsegtOtsu);
     title(sprintf('Otsu Threshold on image %s : dice = %g, jaccard = %g',imNum,dotsu,jotsu))
 elseif computeRegion
     displayResult(IpreProc, T, IsegtRegion);
