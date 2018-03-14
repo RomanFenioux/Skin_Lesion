@@ -1,5 +1,5 @@
 clear all
-%close all
+close all
 
 % choose the number of the image (3 last digits)
 imNum = input('image id (3 digits) : ', 's'); 
@@ -9,6 +9,8 @@ computeOtsu = strcmp(segtMethod,'otsu');
 computeRegion = strcmp(segtMethod,'region');
 computeLevelSet = strcmp(segtMethod,'levelset');
 compare = strcmp(segtMethod,'compare');
+hair_removal = true;
+compute_blackframe = false;
 
 %% read image and ground truth
 % custom function that reads an image and the ground truth mask
@@ -22,8 +24,10 @@ T = imresize(T,[538 720], 'nearest'); % 'nearest' preserves T as a binary mask
 
 %% dullRazor
 % hair removal using the dullRazor algorithm. Ishaved and I are RGB images
-Ishaved = dullRazor(I);
-
+Ishaved = I;
+if hair_removal
+    Ishaved = dullRazor(I);
+end
 %% channel selection
 % converts Ishaved to a grayscale image (here : channel X from CIE-XYZ)
 channel = 'blue';
@@ -31,8 +35,10 @@ IpreProc= channelSelect(Ishaved, channel);
 
 %% black frame mask
 % blackM is a binary mask that equals 1 on the black borders of the image I
-blackM = blackFrame(IpreProc,0.2); 
-
+blackM = zeros(size(IpreProc));
+if compute_blackframe 
+    blackM = blackFrame(IpreProc,0.2); 
+end
 %% maximize dynamic range
 % we don't take the black borders into account, so these black area may end
 % up negative if their intensity is lower than the computed minimum
@@ -53,7 +59,7 @@ if computeOtsu || compare
     %% post processing : 
     % image filling, connected component analysis (see the function for
     % more details.
-    IsegtOtsu=postProc(Iotsu);
+    IsegtOtsu=postProc(Iotsu,true, true, false);
     
         %% evaluation
     % compute dice and jaccard index
