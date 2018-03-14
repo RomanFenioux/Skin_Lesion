@@ -75,39 +75,40 @@ hair removal. It consists in the following steps:
 	\includegraphics[width=0.45\textwidth]{../results/hair-removal/imshaved_095} \\
 	\includegraphics[width=0.45\textwidth]{../results/hair-removal/otsu_segt_im_095} 
 	\includegraphics[width=0.45\textwidth]{../results/hair-removal/otsu_segt_shaved_im_095}
-	\label{fig:dullrazor}
 	\caption{Importance of hair removal for segmentation}
+	\label{fig:dullrazor}
 \end{figure}
 
-Example in figure \ref{fig:dullrazor}
+Example in figure \ref{fig:dullrazor}.
 
 The drawback of this method is all parameters are adapted to be efficient on 512x486 pixels images, whereas the dataset used here contains high resolution images of different sizes (from 720x538 to 2814x2110). The images where therefore resized to the smallest resolution to reduce runtime of the segmentation algorithms and the parameters of the hair removal algorithm were adapted to fit this resolution.
 
 \subsection{Black frame removal}
 
-\begin{figure}
+\begin{figure} 
 	\centering
-	\includegraphics[width=0.45\textwidth]{../results/blackframe/otsu_006_blackframe.png} 
-	\includegraphics[width=0.45\textwidth]{../results/blackframe/otsu-segt-im-006.png} 
-	\label{fig:blackframe}
+	\includegraphics[width=0.45\linewidth]{../results/blackframe/otsu_006_blackframe.png} 
+	\includegraphics[width=0.45\linewidth]{../results/blackframe/otsu-segt-im-006.png} \\
+	\includegraphics[width=0.5\linewidth]{../results/otsu/otsu-segt-im-036}
 	\caption{Importance of black frame removal}
+	\label{fig:blackframe}
 \end{figure}
 
-We see in figure \ref{fig:blackframe} how the performance increase with the removal of the black frame. this step is better done in pre-processing for the thresholding methods to avoid a drift of the optial threshold towards the black.
+
+We see in figure \ref{fig:blackframe} how the performance increase with the removal of the black frame. Thresholding methods are the most affected since they are non local : the black corner of the image are the darker areas of the image and will therefore be selected as part of the lesion. One way of solving this issue is to perform a connected component analysis and select the ROI among the different clusters in postprocessing. However, this approach is not satisfying because firstly the lesion can be connected to the black frame (figure \ref{fig:blackframe} bottom) and secondly it can have multiple nodules so we can't just keep one "best" region according to any criterion. An additional reason to perform this step in preprocessing for the thresholding methods is to avoid any impact on the selection of the optimal threshold towards the black. We can observe this effect on the two top images of the figure \ref{fig:blackframe} : the ROI expands slightly on the right image. The black frame has been identified before the segmentation process, so that it is not taken into account when choosing the threshold.
 
 \section{Thresholding}
 \subsection{Method}
 \paragraph{}
-The easiest method that comes to mind is thresholding since the skin lesions are 
+Thresholding is the simplest of the 3 methods reviewed here. It takes advantage of the fact that skin lesions are 
 usually darker than the surrounding skin. Given a grayscale image, we can 
 classify pixels as being part of the region of interest (ROI) or of the 
 background based on their intensities. However, using an absolute threshold for all images is not possible because of the color variability. 
 \paragraph{} Otsu~\cite{Otsu1979} \tobecompleted{Otsu algorithm description}
-gives a way to find an optimal threshold by seeing the histogram as a probability distribution, an choosing the threshold $k^*$ that maximizes the separability measure $\eta$ or equivalently the inter-class variance $\sigma_B^2$, as defined in equation \ref{eq:otsuvariance}.
+gives a way to find an optimal threshold by seeing the histogram as a probability distribution, an choosing the threshold $k^*$ that maximizes the separability measure $\eta$ (equation \ref{eq:eta}) or equivalently the inter-class variance $\sigma_B^2$ because the total variance $\sigma_T^2$ remains constant for any chosen threshold. So the problem comes down to finding the threshold that maximizes $\sigma_B^2$ among the $L$ possibles levels of gray as defined in the equation \ref{eq:optimthresh}. 
 
-%TODO equation for the separability measure "eta"
-\begin{equation} \label{eq:otsuvariance}
-  \sigma_B^2 = \omega_0 (\mu_0 - \mu_T)^2 + \omega_1 (\mu_1 - \mu_T)^2 
+\begin{equation} \label{eq:eta}
+\eta=\frac{\sigma_B^2}{\sigma_T^2} 
 \end{equation}
 \begin{equation} \label{eq:optimthresh}
   k^* = \argmax_{1<k<L} \sigma_B^2(k)   
@@ -165,16 +166,21 @@ threshold-based approach the X channel from CIE-XYZ color space gives better per
 
 \section{Region based segmentation}
 \subsection{Method}
+First, a simple region growing algorithm, but to slow and bad performances so SRM was used
 \paragraph{} Statistical Region Merging~\cite{nock_statistical_2004} has been 
 used by Celebi and al~\cite{celebi_border_2008} to perform a fast and efficient 
 segmentation of skin lesions. This approach consists in merging regions in a particular order, with a statistical criterion.
 \subsection{Implementation}
+
+\subsection{Results}
 
 \section{Parametric active contours}
 \subsection{Method}
 \paragraph{}  Distance Regularized Level Set Evolution \cite{li2010distance} \tobecompleted{method description}
 \subsection{Implementation}
 Very sensitive to the initialization of the contour, and to the parameters: hard to tune.
+
+\subsection{Results}
 
 \section*{Conclusion}
 %TODO Quality of groundtruth : difficult to have a gold standard because of fuzzy borders, etc... here there was a problem because 2 methods of Manual segmentation were used.
