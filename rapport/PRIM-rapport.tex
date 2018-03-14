@@ -17,24 +17,83 @@ backgroundcolor=OliveGreen!25,bordercolor=OliveGreen,#1]{#2}}
 \DeclareMathOperator*{\argmax}{argmax} 
 
 %opening
-\title{PRIM Project\\ Comparison of segmentation methods for skin lesions in dermoscopy images}
+\title{PRIM\\ Comparison of Segmentation Methods for Skin Lesions in Dermoscopy Images}
 \author{Roman Fenioux}
 \date{September 2017 - January 2018}
 
 \begin{document}
 \maketitle
 \newpage
-\begin{abstract}
-In this project I will compare different segmentation methods for skin lesions in dermoscopy images. 
-
-%TODO importance of skin lesion analysis : helps the diagnosis of melanoma, melanoma is very bad, high cost for dermatologist because lot of images to see, automated and semi automated procedure could speed up the process and make it easier + reduce inter- and intra-expert variability because more reproductible (discuss influence of initialisation), it provides quantitative information. And segmentation specifically : first step for classif, allows shape analysis and localised feature extraction
-
-\end{abstract}
 \section*{Introduction}
-%TODO explain ISIC challenge data, what is ISIC, etc...
+Dermoscopy is a technique used by dermatologist to examine skin lesion, in order to distinguish cancerous lesions, especially melanoma, from benign lesions. However, it is a tedious and challenging task for dermatologist because of the visual similarity between the types of lesions and the important variations of shape, color and texture. This lead to a significant intra and interpersonal variability and a diagnosis accuracy of only 60\%~\cite{kittler_diagnostic_2002}. An efficient computerized analysis of dermoscopy images represents therefore a huge benefice while providing more reproducibility in the results and quantitative information. Such methods have usually three main steps : segmentation, feature extraction and classification. Although recent methods based on deep neural network merge the feature extraction with the classification, they often still have a distinct segmentation stage. This project will compare three segmentation methods.
+
+The data used for this project are 40 images from the 2017 ISBI challenge "Skin Lesion Analysis Toward Melanoma Detection". The sizes range from 538x720 to 2814x2110 pixels for an 8 bit encoding. Segmentation masks were created by an expert clinician, using either a semi-automated process (using a user-provided seed point, a user-tuned flood-fill algorithm, and morphological filtering) or a manual process (from a series of user-provided polyline points).
 %TODO reference all bibliography, what has been done and how...
-This kind of work has already been done by Mendoça and al~\cite{mendonca_comparison_2007}, however ... 
-deep learning approach : difficult because not many images, etc...
+
+Overview of the recent border detection methods~\cite{celebi_lesion_2009}.
+Thresholding methods~\cite{mendonca_comparison_2007}~\cite{Garnavi2010}
+Region based~\cite{celebi_border_2008}
+Active contours based on snake or level set~\cite{mendonca_comparison_2007}, etc, soft computing~\cite{yu_automated_2017}
+
+%TODO The image acquisition procedure should be described in sufficient
+%detail.
+%(2) The test image set should be selected randomly froma large and
+%diverse image database.
+%(3) The test image set should be large enough to ensure statistically
+%valid conclusions.
+%(4) The diagnostic distribution of the test image set should be
+%stated.
+%(5) Algorithms with reasonable computational requirements
+%should be used.
+%(6) The results should be evaluated using borders determined by
+%multiple dermatologists.
+%(7) The results should be compared to those of published border
+%detection methods.
+%(8) The border detection procedure should be described in sufficient
+%detail.
+
+
+\section{Pre-processing}
+\subsection{Hair removal}
+\paragraph{} Dullrazor~\cite{Dullrazor1997} algorithm is a standard method for 
+hair removal. It consists in the following steps:
+\begin{enumerate}
+	\item Locating dark hair with a grayscale morphological closing operation with 
+	vertical, horizontal and diagonals structure elements on the three RGB channels. 
+	We obtain the hair mask by thresholding the absolute difference with the 
+	original image. 
+	\item Denoising the hair mask and interpolating the hair pixels with neighbor 
+	non-hair pixels. 
+	\item Removing the remaining hair artifacts with an adapted median filter, only 
+	applied on the pixels located in the enlarged hair regions
+	(morphological dilatation of the hair mask).
+\end{enumerate}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.45\textwidth]{../results/hair-removal/im_095} 
+	\includegraphics[width=0.45\textwidth]{../results/hair-removal/imshaved_095} \\
+	\includegraphics[width=0.45\textwidth]{../results/hair-removal/otsu_segt_im_095} 
+	\includegraphics[width=0.45\textwidth]{../results/hair-removal/otsu_segt_shaved_im_095}
+	\label{fig:dullrazor}
+	\caption{Importance of hair removal for segmentation}
+\end{figure}
+
+Example in figure \ref{fig:dullrazor}
+
+The drawback of this method is all parameters are adapted to be efficient on 512x486 pixels images, whereas the dataset used here contains high resolution images of different sizes (from 720x538 to 2814x2110). The images where therefore resized to the smallest resolution to reduce runtime of the segmentation algorithms and the parameters of the hair removal algorithm were adapted to fit this resolution.
+
+\subsection{Black frame removal}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.45\textwidth]{../results/blackframe/otsu_006_blackframe.png} 
+	\includegraphics[width=0.45\textwidth]{../results/blackframe/otsu-segt-im-006.png} 
+	\label{fig:blackframe}
+	\caption{Importance of black frame removal}
+\end{figure}
+
+We see in figure \ref{fig:blackframe} how the performance increase with the removal of the black frame. this step is better done in pre-processing for the thresholding methods to avoid a drift of the optial threshold towards the black.
 
 \section{Thresholding}
 \subsection{Method}
@@ -42,14 +101,11 @@ deep learning approach : difficult because not many images, etc...
 The easiest method that comes to mind is thresholding since the skin lesions are 
 usually darker than the surrounding skin. Given a grayscale image, we can 
 classify pixels as being part of the region of interest (ROI) or of the 
-background based on their intensities. However, using an absolute threshold for all images is not possible because of the variability 
+background based on their intensities. However, using an absolute threshold for all images is not possible because of the color variability. 
 \paragraph{} Otsu~\cite{Otsu1979} \tobecompleted{Otsu algorithm description}
-The objective is to find a good threshold to separate the lesion from the 
-surrounding skin. Otsu's approach consist seeing the histogram as a probability 
-distribution, and then choosing the threshold that maximizes the separability 
-measure $\eta$ or equivalently the variance $\sigma_B^2$ between the two classes 
-obtained, as defined in equation \ref{eq:otsuvariance}.
+gives a way to find an optimal threshold by seeing the histogram as a probability distribution, an choosing the threshold $k^*$ that maximizes the separability measure $\eta$ or equivalently the inter-class variance $\sigma_B^2$, as defined in equation \ref{eq:otsuvariance}.
 
+%TODO equation for the separability measure "eta"
 \begin{equation} \label{eq:otsuvariance}
   \sigma_B^2 = \omega_0 (\mu_0 - \mu_T)^2 + \omega_1 (\mu_1 - \mu_T)^2 
 \end{equation}
@@ -119,23 +175,6 @@ segmentation of skin lesions. This approach consists in merging regions in a par
 \paragraph{}  Distance Regularized Level Set Evolution \cite{li2010distance} \tobecompleted{method description}
 \subsection{Implementation}
 Very sensitive to the initialization of the contour, and to the parameters: hard to tune.
-
-\section{Pre-processing}
-\subsection{Hair removal}
-\paragraph{} Dullrazor~\cite{Dullrazor1997} algorithm is a standard method for 
-hair removal. It consists in the following steps:
-\begin{enumerate}
- \item Locating dark hair with a grayscale morphological closing operation with 
-vertical, horizontal and diagonals structure elements on the three RGB channels. 
-We obtain the hair mask by thresholding the absolute difference with the 
-original image. 
- \item Denoising the hair mask and interpolating the hair pixels with neighbor 
-non-hair pixels. 
- \item Removing the remaining hair artifacts with an adapted median filter, only 
-applied on the pixels located in the enlarged hair regions
- (morphological dilatation of the hair mask).
-\end{enumerate}
-The drawback of this method is all parameters are adapted to be efficient on 512x486 pixels images, whereas the dataset used here contains high resolution images of different sizes (from 720x538 to 2814x2110). The images where therefore resized to the smallest resolution to reduce runtime of the segmentation algorithms and the parameters of the hair removal algorithm were adapted to fit this resolution.
 
 \section*{Conclusion}
 %TODO Quality of groundtruth : difficult to have a gold standard because of fuzzy borders, etc... here there was a problem because 2 methods of Manual segmentation were used.
