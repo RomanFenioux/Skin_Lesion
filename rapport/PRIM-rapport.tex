@@ -7,7 +7,7 @@
 \usepackage[pdftex,dvipsnames]{xcolor}  % Coloured text etc.
 \usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
 % note: disable any of the following commands by adding 'disable' as a first option after \todo
-% see example with the third one
+% see example below
 \newcommandx{\tobecompleted}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,
 bordercolor=red,#1]{#2}}
 \newcommandx{\thiswillnotshow}[2][1=]{\todo[disable,linecolor=OliveGreen,
@@ -25,15 +25,18 @@ backgroundcolor=OliveGreen!25,bordercolor=OliveGreen,#1]{#2}}
 \maketitle
 \newpage
 \section*{Introduction}
-Dermoscopy is a technique used by dermatologist to examine skin lesion, in order to distinguish cancerous lesions, especially melanoma, from benign lesions. However, it is a tedious and challenging task for dermatologist because of the visual similarity between the types of lesions and the important variations of shape, color and texture. This lead to a significant intra and interpersonal variability and a diagnosis accuracy of only 60\%~\cite{kittler_diagnostic_2002}. An efficient computerized analysis of dermoscopy images represents therefore a huge benefice while providing more reproducibility in the results and quantitative information. Such methods have usually three main steps : segmentation, feature extraction and classification. Although recent methods based on deep neural network merge the feature extraction with the classification, they often still have a distinct segmentation stage. This project will compare three segmentation methods.
+Dermoscopy is a technique used by dermatologist to examine skin lesion, in order to distinguish cancerous lesions, especially melanoma, from benign lesions. However, it is a tedious and challenging task for dermatologist because of the visual similarity between the types of lesions and the important variations of shape, color and texture. This lead to a significant intra and interpersonal variability and a diagnosis accuracy of only 60\%~\cite{kittler_diagnostic_2002}. An efficient computerized analysis of dermoscopy images represents therefore a huge benefice while providing more reproducibility in the results and quantitative information. Such methods have usually three main steps : segmentation, feature extraction and classification. Although recent methods based on deep neural network merge the feature extraction with the classification, they often still have a distinct segmentation stage. 
 
-The data used for this project are 40 images from the 2017 ISBI challenge "Skin Lesion Analysis Toward Melanoma Detection"~\cite{codella_skin_2017}. The sizes range from 538x720 to 2814x2110 pixels for an 8 bit encoding. Segmentation masks were created by an expert clinician, using either a semi-automated process (using a user-provided seed point, a user-tuned flood-fill algorithm, and morphological filtering) or a manual process (from a series of user-provided polyline points).
+This project will compare three segmentation methods. 
 %TODO reference all bibliography, what has been done and how...
-
 Overview of the recent border detection methods~\cite{celebi_lesion_2009}.
 Thresholding methods~\cite{mendonca_comparison_2007}~\cite{Garnavi2010}
 Region based~\cite{celebi_border_2008}
 Active contours based on snake or level set~\cite{mendonca_comparison_2007}, etc, soft computing~\cite{yu_automated_2017}
+%TODO some details about the methods, the pipeline with pre and post proc, the evaluation (the conclusion ?) 
+
+The data used for this project are 40 images from the 2017 ISBI challenge "Skin Lesion Analysis Toward Melanoma Detection"~\cite{codella_skin_2017}. The sizes range from 538x720 to 2814x2110 pixels for an 8 bit encoding. Segmentation masks were created by an expert clinician, using either a semi-automated process (using a user-provided seed point, a user-tuned flood-fill algorithm, and morphological filtering) or a manual process (from a series of user-provided polyline points).
+
 
 %TODO The image acquisition procedure should be described in sufficient
 %detail.
@@ -104,7 +107,7 @@ Thresholding is the simplest of the 3 methods reviewed here. It takes advantage 
 usually darker than the surrounding skin. Given a grayscale image, we can 
 classify pixels as being part of the region of interest (ROI) or of the 
 background based on their intensities. However, using an absolute threshold for all images is not possible because of the color variability. 
-\paragraph{} Otsu~\cite{Otsu1979} \tobecompleted{Otsu algorithm description}
+\paragraph{} Otsu~\cite{Otsu1979} \tobecompleted{bad phrasing}
 gives a way to find an optimal threshold by seeing the histogram as a probability distribution, an choosing the threshold $k^*$ that maximizes the separability measure $\eta$ (equation \ref{eq:eta}) or equivalently the inter-class variance $\sigma_B^2$ because the total variance $\sigma_T^2$ remains constant for any chosen threshold. So the problem comes down to finding the threshold that maximizes $\sigma_B^2$ among the $L$ possible levels of gray as defined in the equation \ref{eq:optimthresh}. 
 
 \begin{equation} \label{eq:eta}
