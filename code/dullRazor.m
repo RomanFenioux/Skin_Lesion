@@ -71,7 +71,7 @@ function [ Ishaved ] = dullRazor( I )
     % this pixel is removed from M. See hairDenoise for further details
     
     %Md=hairDenoise(M);
-    Md=M;
+    Md=hairDenoise(M);
     
     % linear interpolation. To avoid using hair pixel for the
     % interpolation we give ourselves 4 chances for finding pixels outside 

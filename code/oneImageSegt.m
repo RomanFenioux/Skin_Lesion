@@ -13,17 +13,17 @@ compare = strcmp(segtMethod,'compare');
 % Preprocessing and postprocessing options
 %pre
 channel='blue'; % color channel
-hair_removal = true; % dullrazor shaving
-compute_blackframe = true; % removing blackframe in preproc
+hair_removal = false; % dullrazor shaving
+compute_blackframe = false; % removing blackframe in preproc
 %post
 compute_filling = true; % morphological filling of the holes in the ROI
 compute_CCA = true; % denoising of small "islands" (keeping regions with area > 1000)
-clear_border =true; % if true, removes regions that touches the border of the image
+clear_border = false; % if true, removes regions that touches the border of the image
 
 %% read image and ground truth
 % custom function that reads an image and the ground truth mask
 % I is normalized
-path = '../data/norestriction/';
+path = '../data/easysample/';
 [I,T] = getData(path,imNum);
 
 % resize for dullRazor (optional but important for hairy images)
@@ -42,8 +42,9 @@ if computeOtsu || compare
     % thresholding.
     
     % -2*blackM : negative on the black border region, unchanged elsewhere
-    [threshold, eta] = otsu(IpreProc((IpreProc-2*blackM)>0));
+    [threshold, eta,sigList] = otsu(IpreProc((IpreProc-2*blackM)>0));
     Iotsu = double(IpreProc < threshold)-blackM;
+    Iotsu = double(Iotsu>0);
 
     %% post processing : 
     % image filling, connected component analysis (see the function for

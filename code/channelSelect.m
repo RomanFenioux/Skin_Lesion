@@ -8,8 +8,11 @@ function [Igray] = channelSelect(I, channel)
 %   'b' or 'blue' to select the blue channel in RGB space
 %   'X' to select the X channel in CIE-XYZ space
 
+ % selecting RGB : averaging the channels R, G, B
+    if strcmp(channel,'RGB')
+        Igray = I;
  % selecting meanRGB : averaging the channels R, G, B
-    if strcmp(channel,'meanRGB')
+    elseif strcmp(channel,'meanRGB')
         Igray = sum(I,3)/3;
         
     % selecting red channel

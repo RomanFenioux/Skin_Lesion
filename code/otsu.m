@@ -1,4 +1,4 @@
-function [ k_optim, eta_optim ] = otsu( I )
+function [ k_optim, eta_optim,sigmalist ] = otsu( I )
 %   OTSU calculates the optimal histogram threshold following Otsu's paper
 %   [ k_optim, eta_optim ] = otsu( I )
 %   I is the original grey level image with values between 0 and 1.
@@ -27,13 +27,14 @@ function [ k_optim, eta_optim ] = otsu( I )
     % eta=(sigmaB)^2/(sigmaT)^2 and sigmaT does not depend on k.
     k_optim = 0;
     sigma_B2_max = 0; 
+    sigmalist=[];
     for k=1:255
         % we compute the inter-class variance : 
         % with w0=wk, w1=1-wk, mu0=muk/wk, mu1=(muT-muk)/(1-wk).
         w_k = sum(histo(1:k));
         mu_k = sum(i(1:k).*histo(1:k));
         sigma_B2 = w_k*(1-w_k)*( (mu_t-mu_k)/(1-w_k) - (mu_k/w_k) )^2;
-        
+        sigmalist=[sigmalist,sigma_B2];
         if sigma_B2>sigma_B2_max
             sigma_B2_max=sigma_B2;
             k_optim = k/255; % les images sont entre 0 et 1

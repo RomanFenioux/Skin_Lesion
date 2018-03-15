@@ -10,16 +10,16 @@ display_enabled=true;
 
 % Preprocessing and postprocessing options
 channel = 'blue';
-hair_removal = true;
-compute_blackframe = true;
-clear_border = true;
+hair_removal = false;
+compute_blackframe = false;
+clear_border = false;
 compute_filling = true;
 compute_CCA = strcmp(CCA_Enabled,'y');
 
 
 % inputs 
 % melanoma and nevus are separated to facilitate analysis of the results
-path = '../data/norestriction/'; % either norestriction/ or easysample/ (hairless, no blackframe)
+path = '../data/easysample/'; % either norestriction/ or easysample/ (hairless, no blackframe)
 nevusList = dir([path 'training/nevus/*.jpg']); % file list (nevus)
 idNevus = cell(1,numel(nevusList));
 for i=1:numel(nevusList)
@@ -57,30 +57,16 @@ for i=1:numel(idList)
     I = imresize(I,[538 720], 'bilinear');
     T = imresize(T,[538 720], 'nearest');
     
-    %% dullRazor
-    % hair removal using the dullRazor algorithm. Ishaved and I are RGB images
-    Ishaved = dullRazor(I);
+    %%%%%%%% PREPROCESSING STAGE %%%%%%%%%%
+    [IpreProc, blackM, Ishaved]=preProc(I,channel, hair_removal, compute_blackframe);
 
-    %% channel selection
-    % converts Ishaved to a grayscale image)
-    IpreProc= channelSelect(Ishaved, channel);
-
-    %% black frame mask
-    % blackM is a binary mask that equals 1 on the black borders of the image I
-    % will be negative on the black border region, unchanged elsewhere
-    blackM = blackFrame(IpreProc,0.2); 
-
-    %% maximize dynamic range
-    % we don't take the black borders into account, so these borders may end
-    IpreProc=IpreProc-min(IpreProc(~logical(blackM)));
-    IpreProc=IpreProc/max(IpreProc(~logical(blackM)));
     
     if computeOtsu
         %% otsu
         % Threshold the image using Otsu's paper : 'threshold' is the optimal threshold.
         % eta is Otsu's separability measure at the optimal threshold. 
         % it can be used to evaluate the quality of the thresholding. 
-        [threshold, eta] = otsu(IpreProc((IpreProc-2*blackM>0)));
+        [threshold, eta,~] = otsu(IpreProc((IpreProc-2*blackM>0)));
         I_seuil = double(IpreProc < threshold)-blackM;
         etaList(i)=eta;
     end
@@ -102,7 +88,7 @@ for i=1:numel(idList)
     
     segtList=cat(3,segtList,Isegt);
 end
-
+fprintf('Global :\n Mean dice = %.2f, mean jaccard = %.2f \n',mean(diceList),mean(jaccardList));
 diceNevus=diceList(1:numel(idNevus));
 jaccardNevus=jaccardList(1:numel(idNevus));
 etaNevus=etaList(1:numel(idNevus));
@@ -110,6 +96,9 @@ etaNevus=etaList(1:numel(idNevus));
 diceMela=diceList(numel(idNevus)+1:end);
 jaccardMela=jaccardList(numel(idNevus)+1:end);
 etaMela=etaList(numel(idNevus)+1:end);
+fprintf('Nevus :\n Mean dice = %.2f, mean jaccard = %.2f \n',mean(diceNevus),mean(jaccardNevus));
+fprintf('Melanoma :\n Mean dice = %.2f, mean jaccard = %.2f \n',mean(diceMela),mean(jaccardMela));
+
 %% display
 % plot the dice and jaccard indices for all images
 if display_enabled
@@ -120,11 +109,11 @@ if display_enabled
     plot(get(gca,'xlim'), [mean(diceNevus) mean(diceNevus)],'red'); 
     plot(jaccardNevus,'-d','Color', 'blue')
     plot(get(gca,'xlim'), [mean(jaccardNevus) mean(jaccardNevus)],'blue'); 
-    plot(etaNevus,'-o','Color', 'green')
+    %plot(etaNevus,'-o','Color', 'green')
     hold off
     axis([0 numel(diceNevus)+1 0 1])
     title('Dice and jaccard indices : nevus')
-    legend('dice','average dice','jaccard','average jaccard','eta','Location','SouthWest')
+    legend('dice','average dice','jaccard','average jaccard','Location','SouthWest')
     % set(gca,'XTick',(1:20));
     % set(gca,'XTickLabel',idNevus);
 
@@ -134,12 +123,12 @@ if display_enabled
     plot(get(gca,'xlim'), [mean(diceMela) mean(diceMela)],'red'); 
     plot(jaccardMela,'-d','Color', 'blue')
     plot(get(gca,'xlim'), [mean(jaccardMela) mean(jaccardMela)],'blue'); 
-    plot(etaMela,'-o','Color', 'green')
+    %plot(etaMela,'-o','Color', 'green')
 
     hold off
     axis([0 numel(diceMela)+1 0 1])
     title('Dice and jaccard indices : melanoma')
-    legend('dice','average dice','jaccard','average jaccard','eta','Location','SouthWest')
+    legend('dice','average dice','jaccard','average jaccard','Location','SouthWest')
     % set(gca,'XTick',(1:20));
     % set(gca,'XTickLabel',idMelanoma);
 
