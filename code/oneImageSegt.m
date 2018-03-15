@@ -11,22 +11,26 @@ computeLevelSet = strcmp(segtMethod,'levelset');
 compare = strcmp(segtMethod,'compare');
 
 % Preprocessing and postprocessing options
-hair_removal = true;
-compute_blackframe = true;
-compute_filling = true;
-compute_CCA = true;
+%pre
+channel='blue'; % color channel
+hair_removal = true; % dullrazor shaving
+compute_blackframe = true; % removing blackframe in preproc
+%post
+compute_filling = true; % morphological filling of the holes in the ROI
+compute_CCA = true; % denoising of small "islands" (keeping regions with area > 1000)
+clear_border =false; % if true, removes regions that touches the border of the image
 
 %% read image and ground truth
 % custom function that reads an image and the ground truth mask
 % I is normalized
-[I,T] = getImage(imNum);
+path = '../data/norestriction/';
+[I,T] = getData(path,imNum);
 
 % resize for dullRazor (optional but important for hairy images)
 I = imresize(I,[538 720], 'bilinear');
 T = imresize(T,[538 720], 'nearest'); % 'nearest' preserves T as a binary mask
 
 %%%%%%%% PREPROCESSING STAGE %%%%%%%%%%
-channel='blue';
 [IpreProc, blackM, Ishaved]=preProc(I,channel, hair_removal, compute_blackframe);
 
 %%%%%%%%%%% SEGMENTATION STAGE %%%%%%%%%%%%%%
@@ -44,7 +48,7 @@ if computeOtsu || compare
     %% post processing : 
     % image filling, connected component analysis (see the function for
     % more details.
-    IsegtOtsu=postProc(Iotsu,compute_filling, compute_CCA, false);
+    IsegtOtsu=postProc(Iotsu,compute_filling, compute_CCA, clear_border);
     
         %% evaluation
     % compute dice and jaccard index

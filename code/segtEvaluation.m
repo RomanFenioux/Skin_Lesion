@@ -1,4 +1,4 @@
-clear all
+%clear all
 close all
 
 CCA_Enabled = input('enable connected component analysis? (y/n) ', 's'); 
@@ -6,20 +6,31 @@ segtMethod = input('segmentation method (otsu or region): ','s');
 computeOtsu = strcmp(segtMethod,'otsu');
 computeRegion = strcmp(segtMethod,'region');
 compare = strcmp(segtMethod,'compare');
+display_enabled=true;
 
 % Preprocessing and postprocessing options
+channel = 'blue';
 hair_removal = true;
 compute_blackframe = true;
+clear_border = true;
 compute_filling = true;
 compute_CCA = strcmp(CCA_Enabled,'y');
 
-% inputs
-pathIm = '../data/ISIC-2017_Training_sample/';
-pathTruth = '../data/ISIC-2017_GroundTruth_sample/';
-idNevus = {   '000' '001' '003' '006' '007' '008' '009' '010' '011'...
-    '012' '015' '016' '017' '019' '042' '082' '085' '095' '127' '235'};
-idMelanoma = { '002' '004' '013' '022' '026' '030' '031' '035' '036'...
-    '040' '043' '049' '054' '056' '074' '077' '078' '139' '160' '174'};
+
+% inputs 
+% melanoma and nevus are separated to facilitate analysis of the results
+path = '../data/norestriction/'; % either norestriction/ or easysample/ (hairless, no blackframe)
+nevusList = dir([path 'training/nevus/*.jpg']); % file list (nevus)
+idNevus = cell(1,numel(nevusList));
+for i=1:numel(nevusList)
+    idNevus{i}=nevusList(i).name(end-6:end-4); % to get the 3 last digits without extension.jpg
+end
+melaList = dir([path 'training/melanoma/*.jpg']); % file list (melanoma)
+idMelanoma = cell(1,numel(melaList));
+for i=1:numel(melaList)
+    idMelanoma{i}=melaList(i).name(end-6:end-4); % to get the 3 last digits without extension.jpg
+end
+
 idList = [idNevus idMelanoma];
 
 % init outputs
@@ -42,7 +53,7 @@ for i=1:numel(idList)
     %% read image and ground truth
     % read image, normalize values between 0 and 1, resize (for dullRazor)
     
-    [I, T] = getImage(idList{i});
+    [I, T] = getData(path, idList{i},type);
     I = imresize(I,[538 720], 'bilinear');
     T = imresize(T,[538 720], 'nearest');
     
@@ -51,8 +62,7 @@ for i=1:numel(idList)
     Ishaved = dullRazor(I);
 
     %% channel selection
-    % converts Ishaved to a grayscale image (here : channel X from CIE-XYZ)
-    channel = 'blue';
+    % converts Ishaved to a grayscale image)
     IpreProc= channelSelect(Ishaved, channel);
 
     %% black frame mask
@@ -83,7 +93,7 @@ for i=1:numel(idList)
         I_seuil=regionGrowing(IpreProc,round(x),round(y),t);
     end
     
-    Isegt=postProc(I_seuil,compute_filling, compute_CCA, compute_blackframe);
+    Isegt=postProc(I_seuil,compute_filling, compute_CCA, clear_border);
     
     %% evaluation
     % compute dice and jaccard index 
@@ -102,38 +112,39 @@ jaccardMela=jaccardList(numel(idNevus)+1:end);
 etaMela=etaList(numel(idNevus)+1:end);
 %% display
 % plot the dice and jaccard indices for all images
+if display_enabled
+    F=figure;
+    subplot(1,2,1)
+    plot(diceNevus,'-s','Color','red')
+    hold on
+    plot(get(gca,'xlim'), [mean(diceNevus) mean(diceNevus)],'red'); 
+    plot(jaccardNevus,'-d','Color', 'blue')
+    plot(get(gca,'xlim'), [mean(jaccardNevus) mean(jaccardNevus)],'blue'); 
+    plot(etaNevus,'-o','Color', 'green')
+    hold off
+    axis([0 numel(diceNevus)+1 0 1])
+    title('Dice and jaccard indices : nevus')
+    legend('dice','average dice','jaccard','average jaccard','eta','Location','SouthWest')
+    % set(gca,'XTick',(1:20));
+    % set(gca,'XTickLabel',idNevus);
 
-F=figure;
-subplot(1,2,1)
-plot(diceNevus,'-s','Color','red')
-hold on
-plot(get(gca,'xlim'), [mean(diceNevus) mean(diceNevus)],'red'); 
-plot(jaccardNevus,'-d','Color', 'blue')
-plot(get(gca,'xlim'), [mean(jaccardNevus) mean(jaccardNevus)],'blue'); 
-plot(etaNevus,'-o','Color', 'green')
-hold off
-axis([0 numel(diceNevus)+1 0 1])
-title('Dice and jaccard indices : nevus')
-legend('dice','average dice','jaccard','average jaccard','eta','Location','SouthWest')
-% set(gca,'XTick',(1:20));
-% set(gca,'XTickLabel',idNevus);
+    subplot(1,2,2)
+    plot(diceMela,'-s','Color','red')
+    hold on
+    plot(get(gca,'xlim'), [mean(diceMela) mean(diceMela)],'red'); 
+    plot(jaccardMela,'-d','Color', 'blue')
+    plot(get(gca,'xlim'), [mean(jaccardMela) mean(jaccardMela)],'blue'); 
+    plot(etaMela,'-o','Color', 'green')
 
-subplot(1,2,2)
-plot(diceMela,'-s','Color','red')
-hold on
-plot(get(gca,'xlim'), [mean(diceMela) mean(diceMela)],'red'); 
-plot(jaccardMela,'-d','Color', 'blue')
-plot(get(gca,'xlim'), [mean(jaccardMela) mean(jaccardMela)],'blue'); 
-plot(etaMela,'-o','Color', 'green')
+    hold off
+    axis([0 numel(diceMela)+1 0 1])
+    title('Dice and jaccard indices : melanoma')
+    legend('dice','average dice','jaccard','average jaccard','eta','Location','SouthWest')
+    % set(gca,'XTick',(1:20));
+    % set(gca,'XTickLabel',idMelanoma);
 
-hold off
-axis([0 numel(diceMela)+1 0 1])
-title('Dice and jaccard indices : melanoma')
-legend('dice','average dice','jaccard','average jaccard','eta','Location','SouthWest')
-% set(gca,'XTick',(1:20));
-% set(gca,'XTickLabel',idMelanoma);
-
-set(0, 'units', 'points')
-p=get(0,'screensize');
-set(F,'Position',[0.25*p(3) 0.25*p(4) 1.3*p(3) p(4)])
+    set(0, 'units', 'points')
+    p=get(0,'screensize');
+    set(F,'Position',[0.25*p(3) 0.25*p(4) 1.3*p(3) p(4)])
+end
 
