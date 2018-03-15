@@ -21,4 +21,7 @@ function [blackM] = blackFrame(I,threshold)
         stats.BoundingBox(:,2)+stats.BoundingBox(:,4)>size(Iblack,1));
     blackM=double(ismember(labelmatrix(CC),idx));
     
+    se=strel('disk',10);
+    blackM=imdilate(blackM,se);
+    
 end

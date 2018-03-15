@@ -1,4 +1,4 @@
-clear all
+%clear all
 close all
 
 % choose the number of the image (3 last digits)
@@ -18,7 +18,7 @@ compute_blackframe = true; % removing blackframe in preproc
 %post
 compute_filling = true; % morphological filling of the holes in the ROI
 compute_CCA = true; % denoising of small "islands" (keeping regions with area > 1000)
-clear_border =false; % if true, removes regions that touches the border of the image
+clear_border =true; % if true, removes regions that touches the border of the image
 
 %% read image and ground truth
 % custom function that reads an image and the ground truth mask
