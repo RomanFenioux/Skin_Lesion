@@ -27,15 +27,71 @@ backgroundcolor=OliveGreen!25,bordercolor=OliveGreen,#1]{#2}}
 \section*{Introduction}
 Dermoscopy is a technique used by dermatologist to examine skin lesion, in order to distinguish cancerous lesions, especially melanoma, from benign lesions. However, it is a tedious and challenging task for dermatologist because of the visual similarity between the types of lesions and the important variations of shape, color and texture. This lead to a significant intra and interpersonal variability and a diagnosis accuracy of only 60\%~\cite{kittler_diagnostic_2002}. An efficient computerized analysis of dermoscopy images represents therefore a huge benefice while providing more reproducibility in the results and quantitative information. Such methods have usually three main steps : segmentation, feature extraction and classification. Although recent methods based on deep neural network merge the feature extraction with the classification, they often still have a distinct segmentation stage. 
 
-This project will compare three segmentation methods. 
-%TODO reference all bibliography, what has been done and how...
-Overview of the recent border detection methods~\cite{celebi_lesion_2009}.
-Thresholding methods~\cite{mendonca_comparison_2007}~\cite{Garnavi2010}
-Region based~\cite{celebi_border_2008}
-Active contours based on snake or level set~\cite{mendonca_comparison_2007}, etc, soft computing~\cite{yu_automated_2017}
-%TODO some details about the methods, the pipeline with pre and post proc, the evaluation (the conclusion ?) 
+This project will focus on the segmentation stage, for which we will compare three methods based on different approaches : thresholding~\cite{Garnavi2010}, region growing~\cite{celebi_border_2008} and level set active contours~\cite{li2010distance}. Other methods include clustering~\cite{gomez_independent_2008}, edge operators, morphological watershed~\cite{schmid_lesion_1999}, model-based algorithms~\cite{gao_segmentation_1998} and soft computing~\cite{yu_automated_2017}.
+Overview of the recent border detection methods has been conducted in 2009 by Celebi and al ~\cite{celebi_lesion_2009}.
 
-The data used for this project are 40 images from the 2017 ISBI challenge "Skin Lesion Analysis Toward Melanoma Detection"~\cite{codella_skin_2017}. The sizes range from 538x720 to 2814x2110 pixels for an 8 bit encoding. Segmentation masks were created by an expert clinician, using either a semi-automated process (using a user-provided seed point, a user-tuned flood-fill algorithm, and morphological filtering) or a manual process (from a series of user-provided polyline points).
+\subsection*{Data}
+
+The data used for this project are 40 images from the 2017 ISBI challenge "Skin Lesion Analysis Toward Melanoma Detection"~\cite{codella_skin_2017}. The sizes range from 538x720 to 2814x2110 pixels for an 8 bit encoding. Segmentation masks were created by an expert clinician, using either a semi-automated process (using a user-provided seed point, a user-tuned flood-fill algorithm, and morphological filtering) or a manual process (from a series of user-provided polyline points). 
+
+\begin{figure}[h]
+	
+	\includegraphics[width=0.24\linewidth]{../results/data_examples/nev/ex-001.png} 
+	\includegraphics[width=0.24\linewidth]{../results/data_examples/nev/ex-008.png}
+	\includegraphics[width=0.24\linewidth]{../results/data_examples/mel/ex-013.png} 
+	\includegraphics[width=0.24\linewidth]{../results/data_examples/mel/ex-026.png}\\
+	\includegraphics[width=0.24\linewidth]{../results/data_examples/nev/ex-011.png} 
+	\includegraphics[width=0.24\linewidth]{../results/data_examples/nev/ex-235.png}
+	\includegraphics[width=0.24\linewidth]{../results/data_examples/mel/ex-049.png} 
+	\includegraphics[width=0.24\linewidth]{../results/data_examples/mel/ex-031.png} \\
+	\includegraphics[width=0.24\linewidth]{../results/data_examples/nev/ex-095.png} 
+	\includegraphics[width=0.24\linewidth]{../results/data_examples/nev/ex-127.png} 
+	\includegraphics[width=0.24\linewidth]{../results/data_examples/mel/ex-043.png} 
+	\includegraphics[width=0.24\linewidth]{../results/data_examples/mel/ex-004.png}\\
+	\caption{Example of data used with ground truth segmentation (green)}
+	\label{fig:data_examples}
+\end{figure}
+
+Examples can be seen in figure \ref{fig:data_examples} and we can note the difference between the semi-automated method that closely follows the lesion borders as in the upper left image and the polyline method, purposed to contain all of the lesion area when border are fuzzy as in the top right image.
+
+\subsection*{Problems with border detection}
+
+\begin{figure}[h]
+	\begin{subfigure}{0.32\linewidth}
+		\includegraphics[width=0.99\linewidth]{../results/data_examples/035.jpg} 
+		\caption{Fuzzy borders}
+		\label{fig:fuzz}
+	\end{subfigure}
+	\begin{subfigure}{0.32\linewidth}
+		\includegraphics[width=0.99\linewidth]{../results/data_examples/235.jpg} 
+		\caption{Color variations}
+		\label{fig:color-var}
+	\end{subfigure}
+	\begin{subfigure}{0.32\linewidth}
+		\includegraphics[width=0.99\linewidth]{../results/data_examples/127.jpg} 
+		\caption{Fragmentation}
+		\label{fig:frag-pb}
+	\end{subfigure}
+	\begin{subfigure}{0.32\linewidth}
+		\includegraphics[width=0.99\linewidth]{../results/data_examples/036.jpg} 
+		\caption{Black frame}
+		\label{fig:black-fr-pb}
+	\end{subfigure}
+	\begin{subfigure}{0.32\linewidth}
+		\includegraphics[width=0.99\linewidth]{../results/data_examples/095.jpg} 
+		\caption{Dark hair}
+		\label{fig:hair-pb}
+	\end{subfigure}
+	\begin{subfigure}{0.32\linewidth}
+		\includegraphics[width=0.99\linewidth]{../results/data_examples/026.jpg} 
+		\caption{Low contrast}
+		\label{fig:lowcontrast}
+	\end{subfigure}	
+	\caption{Most common problems encountered in lesion segmentation}
+	\label{fig:seg_problems}
+\end{figure}
+
+The segmentation errors are often caused by two main reasons. The first is a problem of image quality such as the presence artifacts (hair and other objects, black frame around the lesion) or a low contrast. The second is the properties of the lesion itself : fuzzy borders, variation of the color of the lesion or the surrounding skin, and fragmentation of the lesion in multiple nodules. These conditions make the use of simple automated segmentation methods challenging without other processing stages.
 
 
 %TODO The image acquisition procedure should be described in sufficient
@@ -57,6 +113,80 @@ The data used for this project are 40 images from the 2017 ISBI challenge "Skin 
 
 
 \section{Pre-processing}
+\subsection{Conversion to grayscale}
+
+\paragraph{Choosing a color channel}
+
+The segmentation performance is influence by the color space used. Although~\cite{mendonca_comparison_2007} simply uses the blue channel from RGB color space, but Garnavi, Celebi and al~\cite{Garnavi2010} have shown that for a 
+threshold-based approach the X channel from CIE-XYZ color space gives better performances. A comparison of the segmentation results can be seen in the figure \ref{fig:color-channel-otsu}
+
+\begin{figure}
+	%TODO faire tableau avec dice et jaccard moyens sur tous les canaux
+	%TODO faire une figure comparant les résultats entre les deux meilleurs (B et X) ?
+	
+	\begin{subfigure}{0.9\linewidth}
+		\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-B.png} 
+		\caption{blue channel}
+		\label{fig:otsu-blue}
+	\end{subfigure}
+	\begin{subfigure}{0.9\linewidth}
+		\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-R.png}
+		\caption{red channel}
+		\label{fig:otsu-red}
+	\end{subfigure}
+	\caption{Color channel influence on Otsu thresholding performances}
+	\label{fig:color-channel-otsu1}
+\end{figure}
+
+\begin{figure}
+	\begin{subfigure}{0.9\linewidth}
+		\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-G.png}
+		\caption{green channel}
+		\label{fig:otsu-green}
+	\end{subfigure}
+	\begin{subfigure}{0.9\linewidth}
+		\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-meanRGB.png}
+		\caption{RGB average}
+		\label{fig:otsu-mean}
+	\end{subfigure}
+	\begin{subfigure}{0.9\linewidth}
+		\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-X.png}
+		\caption{channel X from CIE-XYZ}
+		\label{fig:otsu-X}
+	\end{subfigure}
+	
+	\caption{Color channel influence on Otsu thresholding performances}
+	\label{fig:color-channel-otsu2}
+\end{figure} 
+
+\paragraph{Contrast enhancement}
+We maximize the contrast with a linear contrast transformation. This step is done after the removal of black border, so that only the area containing the skin and the lesion is taken into account for this transformation.
+
+%TODO insert equation
+$$
+equation changement de contraste..
+$$
+
+\begin{figure}
+\begin{subfigure}{0.32\linewidth}			
+	\includegraphics[width=0.99\linewidth]{../results/color-channel-influence/orig.png}	  
+	\caption{Original image}
+	\label{fig:grayscale-orig}
+\end{subfigure}
+\begin{subfigure}{0.32\linewidth}			
+	\includegraphics[width=0.99\linewidth]{../results/color-channel-influence/no_dyn_range.png}	  
+	\caption{Blue channel selected}
+	\label{fig:grayscale-no-dyn}
+\end{subfigure}
+\begin{subfigure}{0.32\linewidth}			
+	\includegraphics[width=0.99\linewidth]{../results/color-channel-influence/dyn_range.png}	  
+	\caption{Contrast enhancement}
+	\label{fig:grayscale-dyn}
+\end{subfigure}
+	\caption{Conversion to grayscale}
+	\label{fig:grayscale}
+\end{figure}
+
 \subsection{Hair removal}
 \paragraph{} Dullrazor~\cite{Dullrazor1997} algorithm is a standard method for 
 hair removal. It consists in the following steps:
@@ -100,6 +230,10 @@ The drawback of this method is all parameters are adapted to be efficient on 512
 
 We see in figure \ref{fig:blackframe} how the performance increases with the removal of the black frame. Thresholding methods are the most affected since they are non local : the black corner of the image are the darker areas of the image and will therefore be selected as part of the lesion. One way of solving this issue is to perform a connected component analysis and select the ROI among the different clusters in postprocessing. However, this approach is not satisfying because firstly the lesion can be connected to the black frame (figure \ref{fig:blackframe} bottom) and secondly it can have multiple nodules so we can't just keep one "best" region according to any criterion. An additional reason to perform this step in preprocessing for the thresholding methods is to avoid any impact on the selection of the optimal threshold towards the black. We can observe this effect on the two top images of the figure \ref{fig:blackframe} : the ROI expands slightly on the right image. The black frame has been identified before the segmentation process, so that it is not taken into account when choosing the threshold.
 
+\section{post-processing:}
+- morphological filling
+- connected component analysis with several steps (the black border problem..)
+
 \section{Thresholding}
 \subsection{Method}
 \paragraph{}
@@ -123,49 +257,6 @@ $$
 \subsection{Implementation}
 - description of the otsu implementation
 \tobecompleted{explanation about the implementation}
-
-\subsection{Amelioration}
-\paragraph{specific preprocessing:}
-The segmentation performance is influence by the color space used. Although~\cite{mendonca_comparison_2007} simply uses the blue channel from RGB color space, but 
-Garnavi, Celebi and al~\cite{Garnavi2010} have shown that for a 
-threshold-based approach the X channel from CIE-XYZ color space gives better performances. A comparison of the segmentation results can be seen in the figure \ref{fig:color-channel-otsu}
-
-\begin{figure}
-	
-	\begin{subfigure}{0.7\textwidth}
-		\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-B.png} 
-		\caption{blue channel}
-		\label{fig:otsu-blue}
-	\end{subfigure}
-	\begin{subfigure}{0.7\textwidth}
-		\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-R.png}
-		\caption{red channel}
-		\label{fig:otsu-red}
-	\end{subfigure}
-	\begin{subfigure}{0.7\textwidth}
-		\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-G.png}
-		\caption{green channel}
-		\label{fig:otsu-green}
-	\end{subfigure}
-	\begin{subfigure}{0.7\textwidth}
-		\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-meanRGB.png}
-		\caption{RGB average}
-		\label{fig:otsu-mean}
-	\end{subfigure}
-	\begin{subfigure}{0.7\textwidth}
-		\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-X.png}
-		\caption{channel X from CIE-XYZ}
-		\label{fig:otsu-X}
-	\end{subfigure}
-	
-	\caption{Color channel influence on Otsu thresholding performances}
-	\label{fig:color-channel-otsu}
-\end{figure} \tobecompleted{unclear ! not the best way to show these results... }
-
-
-\paragraph{specific post-processing:}
-- morphological filling
-- connected component analysis with several steps (the black border problem)
 
 \subsection{Results}
 \tobecompleted{dice and jaccard indices}
