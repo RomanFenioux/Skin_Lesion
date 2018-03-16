@@ -1,17 +1,18 @@
-%clear all
+clear all
 close all
 
 CCA_Enabled = input('enable connected component analysis? (y/n) ', 's'); 
-segtMethod = input('segmentation method (otsu or region): ','s');
+segtMethod = input('segmentation method (otsu or srm): ','s');
 computeOtsu = strcmp(segtMethod,'otsu');
-computeRegion = strcmp(segtMethod,'region');
+computeSrm = strcmp(segtMethod,'srm');
 compare = strcmp(segtMethod,'compare');
-display_enabled=true;
+melaVsNev=true;
+channelCompare=true;
 
 % Preprocessing and postprocessing options
 channel = 'blue';
-hair_removal = false;
-compute_blackframe = false;
+hair_removal = true;
+compute_blackframe = true;
 clear_border = false;
 compute_filling = true;
 compute_CCA = strcmp(CCA_Enabled,'y');
@@ -70,15 +71,32 @@ for i=1:numel(idList)
         I_seuil = double(IpreProc < threshold)-blackM;
         etaList(i)=eta;
     end
-    
-    if computeRegion
-        figure(1);
-        imshow(IpreProc)
-        [x, y] = ginput(1);
-        t=0.2;
-        I_seuil=regionGrowing(IpreProc,round(x),round(y),t);
+   
+    if computeSrm 
+        %% Segmentation parameter Q; Q small few segments, Q large many segments
+        Qlevel=250;
+
+        %% Performing SRM
+        Isrm=srm(IpreProc*255,Qlevel);
+        Isrm=Isrm/255;
+
+        %% post proc : selectionner les bonnes regions
+        figure(3);
+        imshow(I,[])
+        input=round(ginput(2));  % selectionner patch de peau
+        skinpatch=IpreProc(input(1,2):input(2,2),input(1,1):input(2,1));
+        skinvalue=mean(skinpatch(:));
+        skinmatrix=ones(size(IpreProc))*skinvalue;
+        ISrm=double(abs(skinmatrix-Isrm)>60/255);
+
+        if compute_blackframe
+            ISrm=double((ISrm - blackM)>0);
+        end
+        I_seuil=ISrm;
+       
     end
     
+    %% Post processing
     Isegt=postProc(I_seuil,compute_filling, compute_CCA, clear_border);
     
     %% evaluation
@@ -101,7 +119,7 @@ fprintf('Melanoma :\n Mean dice = %.2f, mean jaccard = %.2f \n',mean(diceMela),m
 
 %% display
 % plot the dice and jaccard indices for all images
-if display_enabled
+if melaVsNev
     F=figure;
     subplot(1,2,1)
     plot(diceNevus,'-s','Color','red')

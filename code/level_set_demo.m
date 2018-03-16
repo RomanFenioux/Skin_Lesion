@@ -13,21 +13,22 @@ clear all;
 close all;
 
 imNum = input('image id (3 digits) : ', 's'); 
+%% read image and ground truth
+path = '../data/norestriction/';
+[I,T] = getData(path,imNum);
+% resize for dullRazor (optional but important for hairy images)
+I = imresize(I,[538 720], 'bilinear');
+T = imresize(T,[538 720], 'nearest'); % 'nearest' preserves T as a binary mask
 
-%[I,T] = getImage(imNum);
+Img=preProc(I,'b',false,false);
 
-pathIm = '../data/ISIC-2017_Training_sample/';
-imName= strcat('ISIC_0000', imNum, '.jpg');
-I = double(imread(strcat(pathIm, imName))); % normalization
-% Img=preProc(I,'X');
-Img = I(:,:,3);
 %% parameter setting
-timestep=1;  % time step
+timestep=0.5;  % time step
 mu=0.2/timestep;  % coefficient of the distance regularization term R(phi)
 iter_inner=5;
 epoch=50;
-lambda=1; % coefficient of the weighted length term L(phi)
-alpha=2;  % coefficient of the weighted area term A(phi)
+lambda=0.5; % coefficient of the weighted length term L(phi)
+alpha=0.5;  % coefficient of the weighted area term A(phi)
 epsilon=1.5; % parameter that specifies the width of the DiracDelta function
 
 
@@ -55,10 +56,10 @@ mask = roipoly(Img,col,row);
 initialLSF(mask)=-c0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-imin=min(row);
-imax=max(row);
-jmin=min(col);
-jmax=max(col);
+imin=min(row)-2;
+imax=max(row)+2;
+jmin=min(col)-2;
+jmax=max(col)+2;
 Img_temp = Img(imin:imax,jmin:jmax);
 
 phi=initialLSF(imin:imax,jmin:jmax);
@@ -66,7 +67,7 @@ phi=initialLSF(imin:imax,jmin:jmax);
 sigma=.8;    % scale parameter in Gaussian kernel
 G=fspecial('gaussian',15,sigma); % Caussian kernel
 Img_smooth=conv2(Img_temp,G,'same');  % smooth image by Gaussian convolution
-[Ix,Iy]=gradient(Img_smooth);
+[Ix,Iy]=gradient(Img_temp);
 f=Ix.^2+Iy.^2;
 g=1./(1+f);  % edge indicator function.
 
@@ -99,7 +100,7 @@ end
 
 % refine the zero level contour by further level set evolution with alpha=0
 alpha=0;
-iter_refine = 50;
+iter_refine = 100;
 phi = level_set(phi, g, lambda, mu, alpha, epsilon, timestep, iter_refine, potentialFunction);
 
 Isegt=zeros(size(Img(:,:,1)));

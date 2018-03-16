@@ -17,9 +17,9 @@ if compare
 end
 [c,h]=contour(Itruth);
 h.LineColor='green';
-if compare
-    legend('Otsu', 'Region','Truth')
-else
-    legend('segmentation','Truth')
-end
+% if compare
+%     legend('Otsu', 'Region','Truth')
+% else
+%     legend('segmentation','Truth')
+% end
 end

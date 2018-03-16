@@ -40,15 +40,12 @@ Isrm=srm(IpreProc*255,Qlevel);
 Isrm=Isrm/255;
 figure(1)
 imshow(IpreProc)
-% hold on
-% contour(Isrm(:,:,1));
-% hold off
 figure(2)
 imshow(Isrm)
 
 
 %% post proc : selectionner les bonnes regions
-figure(1);
+figure(3);
 imshow(I,[])
 input=round(ginput(2));  % selectionner patch de peau
 skinpatch=IpreProc(input(1,2):input(2,2),input(1,1):input(2,1));
