@@ -1,11 +1,12 @@
-%clear all
+clear all
 close all
 
 % choose the number of the image (3 last digits)
 imNum = input('image id (3 digits) : ', 's'); 
-segtMethod = input('segmentation method (otsu, region, levelset): ','s');
+segtMethod = input('segmentation method (otsu, srm, region, levelset): ','s');
 
 computeOtsu = strcmp(segtMethod,'otsu');
+computeSrm = strcmp(segtMethod,'srm');
 computeRegion = strcmp(segtMethod,'region');
 computeLevelSet = strcmp(segtMethod,'levelset');
 compare = strcmp(segtMethod,'compare');
@@ -13,8 +14,8 @@ compare = strcmp(segtMethod,'compare');
 % Preprocessing and postprocessing options
 %pre
 channel='blue'; % color channel
-hair_removal = false; % dullrazor shaving
-compute_blackframe = false; % removing blackframe in preproc
+hair_removal = true; % dullrazor shaving
+compute_blackframe = true; % removing blackframe in preproc
 %post
 compute_filling = true; % morphological filling of the holes in the ROI
 compute_CCA = true; % denoising of small "islands" (keeping regions with area > 1000)
@@ -23,7 +24,7 @@ clear_border = false; % if true, removes regions that touches the border of the 
 %% read image and ground truth
 % custom function that reads an image and the ground truth mask
 % I is normalized
-path = '../data/easysample/';
+path = '../data/norestriction/';
 [I,T] = getData(path,imNum);
 
 % resize for dullRazor (optional but important for hairy images)
@@ -51,13 +52,47 @@ if computeOtsu || compare
     % more details.
     IsegtOtsu=postProc(Iotsu,compute_filling, compute_CCA, clear_border);
     
-        %% evaluation
+    %% evaluation
     % compute dice and jaccard index
     dotsu = dice(IsegtOtsu, T);
     jotsu = jaccard(IsegtOtsu,T);
 end
+
+if computeSrm || compare
+    %% Segmentation parameter Q; Q small few segments, Q large many segments
+    Qlevel=250;
     
-if computeRegion || compare
+    %% Performing SRM
+    Isrm=srm(IpreProc*255,Qlevel);
+    Isrm=Isrm/255;
+    
+    % displays
+%     figure(1)
+%     imshow(IpreProc)
+    figure(2)
+    imshow(Isrm)
+
+    %% post proc : selectionner les bonnes regions
+    figure(3);
+    imshow(I,[])
+    input=round(ginput(2));  % selectionner patch de peau
+    skinpatch=IpreProc(input(1,2):input(2,2),input(1,1):input(2,1));
+    skinvalue=mean(skinpatch(:));
+    skinmatrix=ones(size(IpreProc))*skinvalue;
+    ISegt=double(abs(skinmatrix-Isrm)>60/255);
+    
+    if compute_blackframe
+        ISegt=double((ISegt - blackM)>0);
+    end
+    ISrmSegt = postProc(ISegt,compute_filling, compute_CCA, clear_border);
+    
+    %% evaluation
+    % compute dice and jaccard index
+    dsrm = dice(ISrmSegt, T);
+    jsrm = jaccard(ISrmSegt,T);
+end
+    
+if computeRegion 
     %% Region Growing
     % start from a seed and add neighbor pixels to the region as long as
     % their intensity is close (threshold) to the mean intensity of the
@@ -180,8 +215,11 @@ end
 %% display
 % display the segmentation and tuth for visual evaluation of the results
 if compare
-    displayResult(IpreProc, T, IsegtOtsu, IsegtRegion)
+    displayResult(IpreProc, T, IsegtOtsu, ISRMSegt)
     title(sprintf('comparison between the segmentation methods'))
+elseif computeSrm
+    displayResult(IpreProc, T, ISrmSegt);
+    title(sprintf('SRM on image %s : dice = %g, jaccard = %g',imNum,dsrm,jsrm))
 elseif computeOtsu
     displayResult(IpreProc, T, IsegtOtsu);
     title(sprintf('Otsu Threshold on image %s : dice = %g, jaccard = %g',imNum,dotsu,jotsu))
