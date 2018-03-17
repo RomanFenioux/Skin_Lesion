@@ -1,26 +1,24 @@
 clear all
 close all
 
-CCA_Enabled = input('enable connected component analysis? (y/n) ', 's'); 
-segtMethod = input('segmentation method (otsu or srm): ','s');
-computeOtsu = strcmp(segtMethod,'otsu');
-computeSrm = strcmp(segtMethod,'srm');
-compare = strcmp(segtMethod,'compare');
-melaVsNev=true;
-channelCompare=true;
+%segtMethod = input('segmentation method (otsu or srm): ','s');
+computeOtsu = true; %strcmp(segtMethod,'otsu');
+computeSrm = false; %strcmp(segtMethod,'srm');
+compare = false; % strcmp(segtMethod,'compare');
+melaVsNev=false;
+datasetResult=false;
 
 % Preprocessing and postprocessing options
-channel = 'blue';
+channel = 'b';
 hair_removal = true;
 compute_blackframe = true;
 clear_border = false;
 compute_filling = true;
-compute_CCA = strcmp(CCA_Enabled,'y');
-
+compute_CCA = true;
 
 % inputs 
 % melanoma and nevus are separated to facilitate analysis of the results
-path = '../data/easysample/'; % either norestriction/ or easysample/ (hairless, no blackframe)
+path = '../data/norestriction/'; % either norestriction/ or easysample/ (hairless, no blackframe)
 nevusList = dir([path 'training/nevus/*.jpg']); % file list (nevus)
 idNevus = cell(1,numel(nevusList));
 for i=1:numel(nevusList)
@@ -117,6 +115,10 @@ etaMela=etaList(numel(idNevus)+1:end);
 fprintf('Nevus :\n Mean dice = %.2f, mean jaccard = %.2f \n',mean(diceNevus),mean(jaccardNevus));
 fprintf('Melanoma :\n Mean dice = %.2f, mean jaccard = %.2f \n',mean(diceMela),mean(jaccardMela));
 
+% %% save
+% save(['dice' channel], 'diceList')
+% save(['jaccard' channel], 'jaccardList')
+
 %% display
 % plot the dice and jaccard indices for all images
 if melaVsNev
@@ -127,13 +129,11 @@ if melaVsNev
     plot(get(gca,'xlim'), [mean(diceNevus) mean(diceNevus)],'red'); 
     plot(jaccardNevus,'-d','Color', 'blue')
     plot(get(gca,'xlim'), [mean(jaccardNevus) mean(jaccardNevus)],'blue'); 
-    %plot(etaNevus,'-o','Color', 'green')
+%     plot(etaNevus,'-o','Color', 'green')
     hold off
     axis([0 numel(diceNevus)+1 0 1])
     title('Dice and jaccard indices : nevus')
     legend('dice','average dice','jaccard','average jaccard','Location','SouthWest')
-    % set(gca,'XTick',(1:20));
-    % set(gca,'XTickLabel',idNevus);
 
     subplot(1,2,2)
     plot(diceMela,'-s','Color','red')
@@ -141,17 +141,30 @@ if melaVsNev
     plot(get(gca,'xlim'), [mean(diceMela) mean(diceMela)],'red'); 
     plot(jaccardMela,'-d','Color', 'blue')
     plot(get(gca,'xlim'), [mean(jaccardMela) mean(jaccardMela)],'blue'); 
-    %plot(etaMela,'-o','Color', 'green')
+%     plot(etaMela,'-o','Color', 'green')
 
     hold off
     axis([0 numel(diceMela)+1 0 1])
     title('Dice and jaccard indices : melanoma')
     legend('dice','average dice','jaccard','average jaccard','Location','SouthWest')
-    % set(gca,'XTick',(1:20));
-    % set(gca,'XTickLabel',idMelanoma);
 
     set(0, 'units', 'points')
     p=get(0,'screensize');
     set(F,'Position',[0.25*p(3) 0.25*p(4) 1.3*p(3) p(4)])
+end
+
+if  datasetResult
+    F2=figure; 
+    plot(diceList,'-s','Color','red')
+    hold on
+%     plot(get(gca,'xlim'), [mean(diceList) mean(diceList)],'red'); 
+%     plot(jaccardList,'-d','Color', 'blue')
+%     plot(get(gca,'xlim'), [mean(jaccardList) mean(jaccardList)],'blue');  
+    plot(etaList,'-o','Color', 'green')
+    plot(get(gca,'xlim'), [0.8 0.8],'black'); 
+    hold off
+    axis([0 numel(diceList)+1 0 1])
+    title(sprintf('Channel %s - Dice and jaccard indices : d = %g, j = %g',channel,mean(diceList),mean(jaccardList)))
+    legend('dice','eta','eta threshold = 0.8','Location','SouthWest')
 end
 

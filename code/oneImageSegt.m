@@ -221,7 +221,7 @@ elseif computeSrm
     displayResult(IpreProc, T, ISrmSegt);
     title(sprintf('SRM on image %s : dice = %g, jaccard = %g',imNum,dsrm,jsrm))
 elseif computeOtsu
-    displayResult(IpreProc, T, IsegtOtsu);
+    displayResult(I, T, IsegtOtsu);
     title(sprintf('Otsu Threshold on image %s : dice = %g, jaccard = %g',imNum,dotsu,jotsu))
 elseif computeRegion
     displayResult(IpreProc, T, IsegtRegion);
