@@ -32,7 +32,7 @@ Overview of the recent border detection methods has been conducted in 2009 by Ce
 
 \subsection*{Data}
 
-The data used for this project are 40 images from the 2017 ISBI challenge "Skin Lesion Analysis Toward Melanoma Detection"~\cite{codella_skin_2017}. The sizes range from 538x720 to 2814x2110 pixels for an 8 bit encoding. Segmentation masks were created by an expert clinician, using either a semi-automated process (using a user-provided seed point, a user-tuned flood-fill algorithm, and morphological filtering) or a manual process (from a series of user-provided polyline points). 
+The data used for this project are 42 images from the 2017 ISBI challenge "Skin Lesion Analysis Toward Melanoma Detection"~\cite{codella_skin_2017}. The sizes range from 538x720 to 2814x2110 pixels for an 8 bit encoding. Segmentation masks were created by an expert clinician, using either a semi-automated process (using a user-provided seed point, a user-tuned flood-fill algorithm, and morphological filtering) or a manual process (from a series of user-provided polyline points). 
 
 \begin{figure}[h]
 	
@@ -117,57 +117,37 @@ The segmentation errors are often caused by two main reasons. The first is a pro
 
 \paragraph{Choosing a color channel}
 
-The segmentation performance is influence by the color space used. Although~\cite{mendonca_comparison_2007} simply uses the blue channel from RGB color space, but Garnavi, Celebi and al~\cite{Garnavi2010} have shown that for a 
-threshold-based approach the X channel from CIE-XYZ color space gives better performances. A comparison of the segmentation results can be seen in the figure \ref{fig:color-channel-otsu}
+The segmentation performance is influence by the color space used. Although the literature commonly uses the blue channel from RGB color space as in~\cite{mendonca_comparison_2007}, a paper from Garnavi, Celebi and al~\cite{Garnavi2010} has shown that for a 
+threshold-based approach the X channel from CIE-XYZ color space could perform better. 
 
-\begin{figure}
-	%TODO faire tableau avec dice et jaccard moyens sur tous les canaux
-	%TODO faire une figure comparant les résultats entre les deux meilleurs (B et X) ?
-	
-	\begin{subfigure}{0.9\linewidth}
-		\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-B.png} 
-		\caption{blue channel}
-		\label{fig:otsu-blue}
-	\end{subfigure}
-	\begin{subfigure}{0.9\linewidth}
-		\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-R.png}
-		\caption{red channel}
-		\label{fig:otsu-red}
-	\end{subfigure}
-	\caption{Color channel influence on Otsu thresholding performances}
-	\label{fig:color-channel-otsu1}
-\end{figure}
+To decide which of the blue or the X channel was the best for the ISBI dataset, a comparison of the segmentation performances was conducted. To have a better understanding of the influence of the color channel selection, this comparison also included red and green channels from RGB, luminance from HSV and the arithmetic averaging of the three RGB channels (meanRGB). 
 
-\begin{figure}
-	\begin{subfigure}{0.9\linewidth}
-		\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-G.png}
-		\caption{green channel}
-		\label{fig:otsu-green}
-	\end{subfigure}
-	\begin{subfigure}{0.9\linewidth}
-		\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-meanRGB.png}
-		\caption{RGB average}
-		\label{fig:otsu-mean}
-	\end{subfigure}
-	\begin{subfigure}{0.9\linewidth}
-		\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/otsu-dice-jaccard-X.png}
-		\caption{channel X from CIE-XYZ}
-		\label{fig:otsu-X}
-	\end{subfigure}
-	
-	\caption{Color channel influence on Otsu thresholding performances}
-	\label{fig:color-channel-otsu2}
+Results for all channels are shown in table \ref{tab:color-channel} and with more details for the three best channels in figure \ref{fig:color-channel-otsu}. Despite one severe failure (please mind that the y axis ranges from 0.5 to 1), the blue channel is still the best one in average, followed by the green channel and meanRGB. Therefore, the blue channel was chosen for the conversion from RGB to grayscale image.
+\paragraph{}
+
+\begin{table}
+	\caption{Color channel influence on thresholding results}
+	\centering
+	\begin{tabular}{l| *{6}{c}}	
+	 channel & R & G & \textbf{B} & X & V & meanRGB \\ 
+	\hline
+	 Average dice & 0.78 & 0.87 & \textbf{0.89} & 0.85 & 0.78 & 0.87 \\ 
+	 Average jaccard & 0.65 & 0.78 & \textbf{0.81} & 0.75 & 0.66 & 0.77 
+	\end{tabular}
+	\label{tab:color-channel}
+\end{table}
+
+\begin{figure}	[h]
+	\includegraphics[width=0.9\linewidth]{../results/color-channel-influence/base-evaluation/channel-compare.png} 
+	\caption{Dice index of the 3 best channels (B, G, and meanRGB)}
+	\label{fig:color-channel-otsu}
 \end{figure} 
 
 \paragraph{Contrast enhancement}
-We maximize the contrast with a linear contrast transformation. This step is done after the removal of black border, so that only the area containing the skin and the lesion is taken into account for this transformation.
+We maximize the contrast with a linear contrast transformation by first subtracting the min value and then dividing the obtained image by its max value. This step is done after the removal of black border, so that only the area containing the skin and the lesion is taken into account for this transformation.
 
-%TODO insert equation
-$$
-equation changement de contraste..
-$$
 
-\begin{figure}
+\begin{figure} [h]
 \begin{subfigure}{0.32\linewidth}			
 	\includegraphics[width=0.99\linewidth]{../results/color-channel-influence/orig.png}	  
 	\caption{Original image}
@@ -204,72 +184,172 @@ hair removal. It consists in the following steps:
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.45\textwidth]{../results/hair-removal/im_095} 
-	\includegraphics[width=0.45\textwidth]{../results/hair-removal/imshaved_095} \\
-	\includegraphics[width=0.45\textwidth]{../results/hair-removal/otsu_segt_im_095} 
-	\includegraphics[width=0.45\textwidth]{../results/hair-removal/otsu_segt_shaved_im_095}
+	\includegraphics[width=0.32\linewidth]{../results/hair-removal/im_095} 
+	\includegraphics[width=0.32\linewidth]{../results/hair-removal/hairmask_denoised_095} 
+	\includegraphics[width=0.32\linewidth]{../results/hair-removal/imshaved_095} 
 	\caption{Importance of hair removal for segmentation}
 	\label{fig:dullrazor}
 \end{figure}
 
 Example in figure \ref{fig:dullrazor}.
 
-The drawback of this method is all parameters are adapted to be efficient on 512x486 pixels images, whereas the dataset used here contains high resolution images of different sizes (from 720x538 to 2814x2110). The images where therefore resized to the smallest resolution to reduce runtime of the segmentation algorithms and the parameters of the hair removal algorithm were adapted to fit this resolution.
+The drawback of this method is that all parameters are adapted to be efficient on 512x486 pixels images, whereas the dataset used here contains high resolution images of different sizes (from 720x538 to 2814x2110). The images where therefore resized to the smallest resolution to reduce runtime of the segmentation algorithms and the parameters of the hair removal algorithm were adapted to fit this resolution.
 
 \subsection{Black frame removal}
 
-\begin{figure} 
+
+
+We see in figure \ref{fig:blackframe} how the performance increases with the removal of the black frame. Thresholding methods are the most affected since they are non local : the black corner of the image are the darker areas of the image and will therefore be selected as part of the lesion. One way of solving this issue is to perform a connected component analysis and select the ROI among the different clusters in postprocessing.
+
+\begin{figure} [h]
 	\centering
 	\includegraphics[width=0.45\linewidth]{../results/blackframe/otsu_006_blackframe.png} 
 	\includegraphics[width=0.45\linewidth]{../results/blackframe/otsu-segt-im-006.png} \\
-	\includegraphics[width=0.5\linewidth]{../results/otsu/otsu-segt-im-036}
+	\includegraphics[width=0.45\linewidth]{../results/blackframe/otsu-noblack-036}
+	\includegraphics[width=0.45\linewidth]{../results/blackframe/otsu-black-036}
 	\caption{Importance of black frame removal}
 	\label{fig:blackframe}
-\end{figure}
+\end{figure} 
+ However, this approach is not satisfying because firstly the lesion can be connected to the black frame (figure \ref{fig:blackframe} bottom) and secondly it can have multiple nodules so we can't just keep one "best" region according to any criterion. An additional reason to perform this step in preprocessing for the thresholding methods is to avoid any impact on the selection of the optimal threshold towards the black.
 
 
-We see in figure \ref{fig:blackframe} how the performance increases with the removal of the black frame. Thresholding methods are the most affected since they are non local : the black corner of the image are the darker areas of the image and will therefore be selected as part of the lesion. One way of solving this issue is to perform a connected component analysis and select the ROI among the different clusters in postprocessing. However, this approach is not satisfying because firstly the lesion can be connected to the black frame (figure \ref{fig:blackframe} bottom) and secondly it can have multiple nodules so we can't just keep one "best" region according to any criterion. An additional reason to perform this step in preprocessing for the thresholding methods is to avoid any impact on the selection of the optimal threshold towards the black. We can observe this effect on the two top images of the figure \ref{fig:blackframe} : the ROI expands slightly on the right image. The black frame has been identified before the segmentation process, so that it is not taken into account when choosing the threshold.
+We can observe this effect on the figure \ref{fig:blackframe} : the ROI expands slightly on the right image compared to the left one. The black frame has been identified before the segmentation process, so that it is not taken into account when choosing the threshold.
+
+
+
 
 \section{post-processing:}
-- morphological filling
-- connected component analysis with several steps (the black border problem..)
+\paragraph{Morphological filling} This step consists in filling the holes that can appear inside the ROI with certain methods, such as thresholding or region merging. Our knowledge of the topology of the lesion is that they must be segmented in a unique connected component without hole. This is illustrated in figure \ref{fig:postproc-fill}.
 
-\section{Thresholding}
+\begin{figure}[h]
+	\begin{subfigure}{0.32\linewidth}			
+		\includegraphics[width=0.99\linewidth]{../results/postproc/otsu_nopost_174}	
+		\caption{Segmented image}
+		\label{fig:postproc-orig}
+	\end{subfigure}
+	\begin{subfigure}{0.32\linewidth}			
+		\includegraphics[width=0.99\linewidth]{../results/postproc/otsu_filling_174}	  
+		\caption{Morphological filling}
+		\label{fig:postproc-fill}
+	\end{subfigure}
+	\begin{subfigure}{0.32\linewidth}			
+		\includegraphics[width=0.99\linewidth]{../results/postproc/otsu_filling_CCA_174}
+		\caption{CCA}
+		\label{fig:postproc-CCA}
+	\end{subfigure}
+	\caption{Post processing steps}
+	\label{fig:postproc}
+\end{figure}
+
+\paragraph{Connected Component Analysis} One of the major drawbacks of a thresholding is its non-local approach. Because of this, the segmentation result can be fragmented in several regions. A simple way to solve this issue would be to keep the biggest region, but it is not always the best choice, since lesion can be fragmented. The ideal result would be to merge the fragment by filling the space in between, but it is hard to distinguish a lesion fragment from a segmentation error caused by artifacts. Therefore, the choice made was to eliminate small regions (with an area more than 10 times smaller than the biggest region). This criterion was developed experimentally by trial and error on an image set distinct from the evaluation set. Result on an image can be seen in figure \ref{fig:postproc-CCA}.
+
+
+\section{Adaptative thresholding}
 \subsection{Method}
 \paragraph{}
-Thresholding is the simplest of the 3 methods reviewed here. It takes advantage of the fact that skin lesions are 
-usually darker than the surrounding skin. Given a grayscale image, we can 
-classify pixels as being part of the region of interest (ROI) or of the 
+Thresholding is the simplest of the 3 methods reviewed here. It takes advantage of the fact that skin lesions are usually darker than the surrounding skin. Given a grayscale image, we canclassify pixels as being part of the region of interest (ROI) or of the 
 background based on their intensities. However, using an absolute threshold for all images is not possible because of the color variability. 
-\paragraph{} Otsu~\cite{Otsu1979} \tobecompleted{bad phrasing}
+\paragraph{} Otsu's algorithm ~\cite{Otsu1979}
 gives a way to find an optimal threshold by seeing the histogram as a probability distribution, an choosing the threshold $k^*$ that maximizes the separability measure $\eta$ (equation \ref{eq:eta}) or equivalently the inter-class variance $\sigma_B^2$ because the total variance $\sigma_T^2$ remains constant for any chosen threshold. So the problem comes down to finding the threshold that maximizes $\sigma_B^2$ among the $L$ possible levels of gray as defined in the equation \ref{eq:optimthresh}. 
 
 \begin{equation} \label{eq:eta}
 \eta=\frac{\sigma_B^2}{\sigma_T^2} 
 \end{equation}
-$$
-\sigma_B^2=\mathcal{P}(C_0)\mathcal{P}(C_1)(\mu_1-\mu_0)^2
-$$
+
+with $ \sigma_B^2=\mathcal{P}(C_0)\mathcal{P}(C_1)(\mu_1-\mu_0)^2$ the interclass variance
+
 \begin{equation} \label{eq:optimthresh}
   k^* = \argmax_{1<k<L} \sigma_B^2(k)   
 \end{equation}
 
 \subsection{Implementation}
-- description of the otsu implementation
-\tobecompleted{explanation about the implementation}
 
-\subsection{Results}
-\tobecompleted{dice and jaccard indices}
+\begin{figure}[h]
+	\begin{subfigure}{0.49\linewidth}			
+		\includegraphics[width=0.99\linewidth]{../results/otsu/histogram-thresh-sigma-002}	
+		\caption{Histogram and interclass variance}
+		\label{fig:otsu-hist}
+	\end{subfigure}
+	\begin{subfigure}{0.49\linewidth}			
+		\includegraphics[width=0.99\linewidth]{../results/otsu/otsu-segt-im-002}	  
+		\caption{Segmented image}
+		\label{fig:otsu-segt-hist}
+	\end{subfigure}
+	\caption{Otsu's threshold}
+	\label{fig:otsu-histogram}
+\end{figure}
 
-dice :
+The implementation of this method is straightforward. We build the histogram of the image, and search the best threshold among the 254 possible values. For each threshold value, the histogram is divided into two clusters $C_0$ and $C_1$. We compute the associated inter-class variance using the equation \ref{eq:optimthresh} and keep the threshold corresponding to the maximum. The figure \ref{fig:otsu-histogram} shows the segmented image and its histogram (note that the black corners are not included thanks to the black frame removal). We can notice that despite a very flat evolution of the histogram, the chosen threshold can separate the two clusters in the middle which lead to the best separation of the clusters. 
+
+However, it has been discussed~\cite{celebi_lesion_2009} that human operators tend to put the separation border on the outmost detectable pigmented pixel, whereas this threshold select an intermediary value. This can lead to under-segmentation. 
+
+
+
+\subsection{Results} \label{results-otsu}
+
+\paragraph{Metrics}
+Two metrics are used for the evaluation of the results.
+
+The dice index :
 \begin{equation} \label{eq:dice}
 d=\frac{2|I \cap J|}{|I| + |J|} 
 \end{equation}
 
-jaccard :
+The jaccard index :
 \begin{equation} \label{eq:jaccard}
 j=\frac{|I \cap J|}{|I \cup J|} 
 \end{equation}
+
+This two indices are similar but jaccard is slightly more punishing, especially in cases where the segmented region and the ground truth are the same but not perfectly overlapped.
+\begin{figure}[h]
+	
+	\includegraphics[width=0.32\linewidth]{../results/otsu/otsu-no-processing-000}
+	\includegraphics[width=0.32\linewidth]{../results/otsu/otsu-no-processing-001}		\includegraphics[width=0.32\linewidth]{../results/otsu/otsu-no-processing-003} \\		\includegraphics[width=0.32\linewidth]{../results/otsu/otsu-no-processing-095}
+	\includegraphics[width=0.32\linewidth]{../results/otsu/otsu-no-processing-036}
+	\includegraphics[width=0.32\linewidth]{../results/otsu/otsu-no-processing-026} \\
+	\includegraphics[width=0.32\linewidth]{../results/otsu/otsu-095}
+	\includegraphics[width=0.32\linewidth]{../results/otsu/otsu-036}
+	\includegraphics[width=0.32\linewidth]{../results/otsu/otsu-026}
+	\caption{Thresholding segmentation examples}
+	\caption*{First and second row : no processing - bottom row : with processing}
+	\label{fig:otsu-ex}
+\end{figure}
+
+\paragraph{Results without processing} 
+The two top rows of the figure \ref{fig:otsu-ex} shows examples of segmentation results obtained without any pre- or post-processing other than the conversion from RGB to grayscale on the blue channel. As expected, this approach is very sensitive dark hair, black frame and fuzzy borders, but gives very good results on well contrasted lesions with sharp edges. On the entire dataset, the performance is :
+
+Average dice index = 0.75
+
+Average jaccard index = 0.65
+
+
+
+\paragraph{Amelioration with pre- and post-processing} This increases the performances significantly :
+
+Average dice index = 0.89
+
+Average jaccard index = 0.81
+
+The bottom rows of the figure \ref{fig:otsu-ex} help us to see how the segmentation changes with the additional processing stages. 
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.9\linewidth]{../results/otsu/melaVSnev}
+	\caption{Adaptative thresholding, results for melanoma and nevus}
+	\label{fig:otsu-melaVSnev}
+\end{figure}
+
+\paragraph{Melanoma and nevus} 
+Results on the entire dataset are shown in figure \ref{fig:otsu-melaVSnev}, with a separation between melanoma and nevus classes. We can see that the results are significantly better on images of nevus. An explanation for this effect could be the more complex structure of cancerous lesions, that often present more color variation and shape irregularities. 
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.40\linewidth]{../results/otsu/otsu-127}
+	\caption{Critical failure for Otsu thresholding}
+	\label{fig:otsu-127}
+\end{figure}
+
+The critical failure of the $19^th$ nevus image is caused by a very unusual lesion structure, shown in figure \ref{fig:otsu-127}. In this specific case, the blue channel is completely blind to the red variation and is not able do correctly detect the true borders.
+
 
 \section{Region based segmentation}
 \subsection{Method}
@@ -312,33 +392,63 @@ What would it take to make this method fully auto ?
 ETC
 
 \subsection{Choosing the right method}
-An interesting development of this comparison would be to have a efficient and easily computable criterion to choose the best method given a particular image. Of course this would make more sense if all the methods were fully automated, since here an interaction with the user is already needed, we can compute the three methods and give a choice. But as we have seen, it is possible to avoid this interaction given some further development, and it has been done in the literature for the SRM method~\cite{celebi_border_2008}. 
-
-\subsubsection{Separability criterion}
-To compute the threshold with Otsu's method, we optimize a separability measure $eta$. We investigated whether there were a correlation between this value and the evaluation metrics, so that it could be used to evaluate the performance of the thresholding algorithm. The results are shown in figure \ref{fig:eta-correlation} and it appears that $\eta$ does not make a good selection criterion, for several reasons. Even in the case of critical failure, it still has a high value. That is because $\eta$ is measuring the inter-class variance normalize by the total variance, but two very contrasted class are not a guarantee for a good performance. The difficult images often show a lesion with a high inner-class variance that are separated by the thresholding method without deteriorating the value of $\eta$.
-
-Another approach for using the separability measure would be to use not only the value associated with the optimal threshold but the entire set associated with all possible thresholds. The evolution of this measure could give us knowledge about Otsu's algorithm performance.
-
-\subsubsection{another criterion}
 
 \begin{figure}
-\centering
-\includegraphics[width=0.9\linewidth]{../results/otsu-dice-jaccard-eta-plot}
-\caption{$\eta$ (green), dice (red) and jaccard (blue) indices.\\ Correlation coefficient : R($\eta$, dice)=0.33, R($\eta$, jaccard)=0.37 }
-\label{fig:eta-correlation}
+	\centering
+	\includegraphics[width=0.6\linewidth]{../results/selection-criterion/otsu-dice-jaccard-eta-plot}
+	\caption{$\eta$ (green), dice (red)\\ Correlation coefficient : R($\eta$, dice)=0.50 }
+	\label{fig:eta-correlation}
 \end{figure}
 
+An interesting development of this comparison would be to have an efficient and easily computable criterion to choose the best method given a particular image. 
+
+\subsubsection{Separability criterion}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.6\linewidth]{../results/selection-criterion/eta-dice-drop}
+	\caption{Evolution of the performance when dropping bad results}{Red curve :  dropping images with the lowest separability metric $\eta$\\ Blue curve : dropping images with the actual worst dice value \\ Dotted lines : percentage of image rejected to ensure $dice > 0.7$}
+	\label{fig:eta-dice-drop}
+\end{figure}
+
+To compute the threshold with Otsu's method, we optimize a separability measure $\eta$. We investigated whether there were a correlation between this value and the evaluation metrics, so that it could be used to evaluate the performance of the thresholding algorithm. The results are shown in figure \ref{fig:eta-correlation} and it appears that $\eta$ is correlated to the evaluation metrics with a correlation coefficient of 0.5.
+
+To test this criterion, we determined on a training set a threshold for eta that would ensure a good performance (dice>0.7) for the thresholding method. That could help us to automatically detect good from bad performances on real data and for instance switch to a semi-automatic method in that case. We also wanted to control how many images would have to be rejected. Given the algorithm performances described in section \ref{results-otsu}, we should only drop the 7/42 ()16.7\%) of the dataset where the dice index was lower than 0.7.  
+
+The figure \ref{fig:eta-dice-drop} shows the evolution of the lowest performance while we iteratively drop the image with the smallest $\eta$ value, ie what we believe to be the worst performance. We compared that to the evolution of the worst performance while dropping the image with the smallest dice index, ie the actual worst performance. To ensure a dice index higher than 0.7 on this training et, we would have to reject all images with $\eta < 0.8$, which represent about 47\% of the set. This rejection rate is high, but if we lower the $\eta$ threshold to 0.7, decreasing the rejection rate to a more acceptable 11\%, the lowest dice index comes down to 0.55. 
+
+Therefore, the selected threshold for $\eta$ is 0.8.
+
+To test how reliable this technique is, we evaluated this 0.8 threshold on a test set of 50 images. The figure \ref{fig:test-criterion-accepted} shows that the criterion ensured indeed a dice index above 0.7 (only one outlier at 0.68), at the cost of 42\% (21/50) rejection rate.
+
+
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.6\linewidth]{../results/selection-criterion/test-dice-eta-plot}
+	\includegraphics[width=0.6\linewidth]{../results/selection-criterion/test-dice-eta-accepted}
+	\caption{Test of the criterion - dice : squares, $\eta$ : stars, rejected : black }
+	\label{fig:test-criterion-accepted}
+\end{figure}
+
+\subsection{Discussion}
+???
+machine learning with eta and other parameters (colorimetry, detection of hair, etc...)
+Of course this would make more sense if all the methods were fully automated, since here an interaction with the user is already needed, we can compute the three methods and give a choice.
+SRM is only semi automated but as we have seen, it is possible to avoid this interaction given some further development, and it has been done in the literature for the SRM method~\cite{celebi_border_2008}. 
 
 \section*{Conclusion}
 %TODO Conclusion
  Quality of groundtruth : difficult to have a gold standard because of fuzzy borders, etc... here there was a problem because 2 methods of Manual segmentation were used. Also : only one segmentation mask was available, so we can not compare our result with the inter-expert variability.
 
  Complementarity of the different methods
- automatic criterion to decide between the different methods ? (examples : otsu's separability measure does not work, presence of hair, global initial contrast, etc... complicated...)
+ automatic criterion to decide between the different methods ? (examples : otsu's separability measure does not work, presence of hair, global initial contrast, etc... complicated...). We propose a costly but reliable criterion to ensure acceptable results with the thresholding method.
  
  Preprocessing is critical
  
 discuss quality of the method used
+
+
 
 
 
