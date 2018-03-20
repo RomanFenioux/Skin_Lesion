@@ -20,6 +20,6 @@ h.LineColor='green';
 % if compare
 %     legend('Otsu', 'Region','Truth')
 % else
-%     legend('segmentation','Truth')
+    legend('segmentation','Truth')
 % end
 end

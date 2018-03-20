@@ -127,7 +127,7 @@ if computeLevelSet
     initialLSF = c0*ones(size(IpreProc));
     %% initial LSF from user input
     figure(1);
-    imshow(IpreProc/max(IpreProc(:)))
+    imshow(I)
     input=round(ginput()); 
 
     %%%%%%% MULTI RECTANGLE INPUT %%%%%%%
@@ -203,6 +203,7 @@ if computeLevelSet
     % back to full size
     IsegtLevelSet=zeros(size(I(:,:,1)));
     IsegtLevelSet(imin:imax,jmin:jmax) = double(-phi>0);
+    IsegtLevelSet = postProc(IsegtLevelSet);
     
     %% evaluation
     % compute dice and jaccard index
@@ -227,6 +228,6 @@ elseif computeRegion
     displayResult(IpreProc, T, IsegtRegion);
     title(sprintf('Region Growing on image %s : dice = %g, jaccard = %g',imNum,dregion,jregion))
 elseif computeLevelSet
-    displayResult(IpreProc, T, IsegtLevelSet);
-    title(sprintf('Region Growing on image %s : dice = %g, jaccard = %g',imNum,dLevelSet,jLevelSet))
+    displayResult(I, T, IsegtLevelSet);
+    title(sprintf('Level Set on image %s : dice = %g, jaccard = %g',imNum,dLevelSet,jLevelSet))
 end

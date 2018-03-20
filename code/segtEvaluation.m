@@ -2,11 +2,11 @@ clear all
 close all
 
 %segtMethod = input('segmentation method (otsu or srm): ','s');
-computeOtsu = true; %strcmp(segtMethod,'otsu');
-computeSrm = false; %strcmp(segtMethod,'srm');
+computeOtsu = false; %strcmp(segtMethod,'otsu');
+computeSrm = true; %strcmp(segtMethod,'srm');
 compare = false; % strcmp(segtMethod,'compare');
-melaVsNev=false;
-datasetResult=false;
+melaVsNev=true;
+datasetResult=true;
 
 % Preprocessing and postprocessing options
 channel = 'b';

@@ -19,16 +19,16 @@ path = '../data/norestriction/';
 % resize for dullRazor (optional but important for hairy images)
 I = imresize(I,[538 720], 'bilinear');
 T = imresize(T,[538 720], 'nearest'); % 'nearest' preserves T as a binary mask
-
+T=logical(T);
 Img=preProc(I,'b',false,false);
 
 %% parameter setting
-timestep=0.5;  % time step
+timestep=1;  % time step
 mu=0.2/timestep;  % coefficient of the distance regularization term R(phi)
 iter_inner=5;
-epoch=50;
-lambda=0.5; % coefficient of the weighted length term L(phi)
-alpha=0.5;  % coefficient of the weighted area term A(phi)
+epoch=100;
+lambda=0.1; % coefficient of the weighted length term L(phi)
+alpha=0;  % coefficient of the weighted area term A(phi)
 epsilon=1.5; % parameter that specifies the width of the DiracDelta function
 
 
@@ -65,7 +65,7 @@ Img_temp = Img(imin:imax,jmin:jmax);
 phi=initialLSF(imin:imax,jmin:jmax);
 
 sigma=.8;    % scale parameter in Gaussian kernel
-G=fspecial('gaussian',15,sigma); % Caussian kernel
+G=fspecial('gaussian',5,sigma); % Caussian kernel
 Img_smooth=conv2(Img_temp,G,'same');  % smooth image by Gaussian convolution
 [Ix,Iy]=gradient(Img_temp);
 f=Ix.^2+Iy.^2;
@@ -116,3 +116,8 @@ mesh(-phi);   % for a better view, the LSF is displayed upside down
 hold on;  contour(phi, [0,0], 'r','LineWidth',2);
 title('final level set function');
 view([-80 35]);
+
+diceLset=dice(Isegt,T)
+jacLset=jaccard(Isegt,T)
+displayResult(Img,T,Isegt);
+title(sprintf('Level Set on image %s : dice = %g, jaccard = %g',imNum,diceLset,jacLset))
