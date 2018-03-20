@@ -1,17 +1,18 @@
 \documentclass[a4paper,10pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
+\usepackage{multirow}
 \usepackage{subcaption}
 \usepackage{notoccite}
-\usepackage{xargs}                      % Use more than one optional parameter in a new commands
-\usepackage[pdftex,dvipsnames]{xcolor}  % Coloured text etc.
+%\usepackage{xargs}                      % Use more than one optional parameter in a new commands
+%\usepackage[pdftex,dvipsnames]{xcolor}  % Coloured text etc.
 \usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
 % note: disable any of the following commands by adding 'disable' as a first option after \todo
 % see example below
-\newcommandx{\tobecompleted}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,
-bordercolor=red,#1]{#2}}
-\newcommandx{\thiswillnotshow}[2][1=]{\todo[disable,linecolor=OliveGreen,
-backgroundcolor=OliveGreen!25,bordercolor=OliveGreen,#1]{#2}}
+%\newcommandx{\tobecompleted}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,
+%	bordercolor=red,#1]{#2}}
+%\newcommandx{\thiswillnotshow}[2][1=]{\todo[disable,linecolor=OliveGreen,
+%	backgroundcolor=OliveGreen!25,bordercolor=OliveGreen,#1]{#2}}
 
 \DeclareMathOperator*{\argmin}{argmin} 
 \DeclareMathOperator*{\argmax}{argmax} 
@@ -94,7 +95,7 @@ Examples can be seen in figure \ref{fig:data_examples} and we can note the diffe
 The segmentation errors are often caused by two main reasons. The first is a problem of image quality such as the presence artifacts (hair and other objects, black frame around the lesion) or a low contrast. The second is the properties of the lesion itself : fuzzy borders, variation of the color of the lesion or the surrounding skin, and fragmentation of the lesion in multiple nodules. These conditions make the use of simple automated segmentation methods challenging without other processing stages.
 
 
-%TODO The image acquisition procedure should be described in sufficient
+%The image acquisition procedure should be described in sufficient
 %detail.
 %(2) The test image set should be selected randomly froma large and
 %diverse image database.
@@ -218,7 +219,7 @@ We can observe this effect on the figure \ref{fig:blackframe} : the ROI expands 
 
 
 
-\section{post-processing:}
+\section{Post-processing:}
 \paragraph{Morphological filling} This step consists in filling the holes that can appear inside the ROI with certain methods, such as thresholding or region merging. Our knowledge of the topology of the lesion is that they must be segmented in a unique connected component without hole. This is illustrated in figure \ref{fig:postproc-fill}.
 
 \begin{figure}[h]
@@ -290,17 +291,17 @@ However, it has been discussed~\cite{celebi_lesion_2009} that human operators te
 \paragraph{Metrics}
 Two metrics are used for the evaluation of the results.
 
-The dice index :
+The dice index is calculated of the as shown in the equation \ref{eq:dice}:
 \begin{equation} \label{eq:dice}
-d=\frac{2|I \cap J|}{|I| + |J|} 
+d=\frac{|I \cap J|}{1/2(|I| + |J|)} 
 \end{equation}
 
-The jaccard index :
+The jaccard index is calculated as shown in the equation \ref{eq:jaccard}:
 \begin{equation} \label{eq:jaccard}
 j=\frac{|I \cap J|}{|I \cup J|} 
 \end{equation}
 
-This two indices are similar but jaccard is slightly more punishing, especially in cases where the segmented region and the ground truth are the same but not perfectly overlapped.
+This two indices are similar but jaccard is slightly more punishing, especially in cases where the segmented region and the ground truth have the same area but are not perfectly overlapped.
 \begin{figure}[h]
 	
 	\includegraphics[width=0.32\linewidth]{../results/otsu/otsu-no-processing-000}
@@ -316,7 +317,7 @@ This two indices are similar but jaccard is slightly more punishing, especially 
 \end{figure}
 
 \paragraph{Results without processing} 
-The two top rows of the figure \ref{fig:otsu-ex} shows examples of segmentation results obtained without any pre- or post-processing other than the conversion from RGB to grayscale on the blue channel. As expected, this approach is very sensitive dark hair, black frame and fuzzy borders, but gives very good results on well contrasted lesions with sharp edges. On the entire dataset, the performance is :
+The two top rows of the figure \ref{fig:otsu-ex} show examples of segmentation results obtained without any pre- or post-processing other than the conversion from RGB to grayscale on the blue channel. As expected, this approach is very sensitive dark hair, black frame and fuzzy borders, but gives very good results on well contrasted lesions with sharp edges. On the entire dataset, the performance is :
 
 Average dice index = 0.75
 
@@ -326,9 +327,9 @@ Average jaccard index = 0.65
 
 \paragraph{Amelioration with pre- and post-processing} This increases the performances significantly :
 
-Average dice index = 0.89
+Average dice index = 0.84
 
-Average jaccard index = 0.81
+Average jaccard index = 0.75
 
 The bottom rows of the figure \ref{fig:otsu-ex} help us to see how the segmentation changes with the additional processing stages. 
 
@@ -340,7 +341,7 @@ The bottom rows of the figure \ref{fig:otsu-ex} help us to see how the segmentat
 \end{figure}
 
 \paragraph{Melanoma and nevus} 
-Results on the entire dataset are shown in figure \ref{fig:otsu-melaVSnev}, with a separation between melanoma and nevus classes. We can see that the results are significantly better on images of nevus. An explanation for this effect could be the more complex structure of cancerous lesions, that often present more color variation and shape irregularities. 
+Results on the entire dataset are shown in figure \ref{fig:otsu-melaVSnev}, with a separation between melanoma and nevus classes. We can observe a significant difference of performance between images of benign and cancerous lesions : the results are better on images of nevus. An explanation for this effect could be the more complex structure of cancerous lesions, that often present more color variation and shape irregularities. 
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.40\linewidth]{../results/otsu/otsu-127}
@@ -348,82 +349,312 @@ Results on the entire dataset are shown in figure \ref{fig:otsu-melaVSnev}, with
 	\label{fig:otsu-127}
 \end{figure}
 
-The critical failure of the $19^th$ nevus image is caused by a very unusual lesion structure, shown in figure \ref{fig:otsu-127}. In this specific case, the blue channel is completely blind to the red variation and is not able do correctly detect the true borders.
+The critical failure of the $19^{th}$ nevus image is caused by a very unusual lesion structure, shown in figure \ref{fig:otsu-127}. In this specific case, the blue channel is completely blind to the red variation and is not able do correctly detect the true borders.
 
 
 \section{Region based segmentation}
 \subsection{Method}
 First, a simple region growing algorithm, but to slow and bad performances so SRM was used
-\paragraph{ Statistical Region Merging~\cite{nock_statistical_2004} }has been 
+\paragraph{ Statistical Region Merging~\cite{nock_statistical_2004} } This method has been 
 used by Celebi and al~\cite{celebi_border_2008} to perform a fast and efficient 
 segmentation of skin lesions. This approach consists in merging regions in a particular order, with a statistical criterion.
 
-The image is formed of two region : the lesion and the skin. To each region corresponds a probability distribution.
+The image is considered as an observation of a theoretical image made of two regions : the lesion and the skin. We assume an homogeneity property of those regions, so that all pixels in a given region have the same statistical expectation. Each region can be described by a distinct probability distribution. 
 
+SRM is based on two concepts : a merging predicate, described in equation \ref{eq:predicate} and an order two follow. This order is given by a similarity function $f$, which ensure that when merging two growing regions, all tests inside the regions have occurred. This results in a huge diminution of the runtime. A possible function is the radiometric difference as defined in equation \ref{eq:f}.
 
 \begin{equation}
-!!!!!!!!!!!predicat-equation!!!!!!!!
+P(R,R')= 
+\begin{cases}
+\text{true} & \text{if } \forall a \in \lbrace \mathbf{R,G,B} \rbrace, |\bar{R}'_a - \bar{R}_a| \leq |\sqrt{b^2(R) + b^2(R')}|  \\
+\text{false} & \text{otherwise}
+\end{cases}
+\label{eq:predicate}
 \end{equation}
 $$
-!!!!!!equation-de - b!!!!!
+b(R)=g \sqrt{\frac{1}{2Q|R|}\ln (6|I|^2R_{|R|})}
 $$
-
-$$
-f(p,p')=|p-p')
-$$
+\begin{equation}
+f(p,p')=|p-p'| 
+\label{eq:f}
+\end{equation}
+This method requires one parameter : Q. It is used to compute the threshold value $b$ of the merging predicate $P$. A high value for Q implies a lower tolerance for merging region. This will result in a more fragmented output but also more homogeneous regions. 
 
 \paragraph{Why SRM?}
-TODO comparison with region growing
-%TODO comparison with region growing
+Compared to traditional region growing, the SRM algorithm has several advantages :
+
+- No initialization required, which can have a heavy impact on the performances and the reproducibility.
+
+- Fast
+
+- Less sensitive to local inhomogeneities 
+
+- Better merging order (the more similar region first) 
+
+- Can produce more than two region : useful for fragmented lesions but that implies deciding the region to keep in the end.
+
 \subsection{Implementation}
+The implementation follows~\cite{celebi_border_2008} and consists in the following steps :
 
 \begin{enumerate}
-	\item Adapted median smoothing
-	\item Pixel pairing and sorting
-	\item Follow the order and merge when necessary. Union-find structure.
+	\item Preprocessing stages (conversion to grayscale, contrast enhancement, black frame detection, hair removal)
+	\item Adapted median smoothing of size $n=floor\left( 5\sqrt{(M/768)(N/512)}\right)$ for better region homogeneities. The size of the mask is adapted to the size of the image given the observation that n=5 is a good choice for images of size 768x512.
+	\item Pixel pairing in 4-connectivity and sorting by increasing order of $f(p,p')$
+	\item Traversing the order once and perform the merging test for any pair of pixels where $R(p)\neq R(p')$. Merge if it returns true.
+	\item User input : selection of a skin patch.
+	\item Classification of the region between lesion and skin by comparing their mean value to the skin patch.
+	\item Postprocessing stages 
 \end{enumerate}
 
-\subsection{Results}
-dice, jaccard, etc, weak and strong aspects, etc
+The steps 3 and 4 correspond to the actual SRM algorithm. Since it produces more than two regions, as shown in figure \ref{fig:srm-reg}, we use a skin patch to distinguish skin regions from lesion.~\cite{celebi_border_2008} does it automatically by choosing the skin patch in the corner of the image, but it was not possible with my data since there is some times no location in the image on which we are sure to find skin (the corners are sometimes covered by the black frame). Therefore, we used a input from the user to select a patch of skin. 
 
-what would it take to make it fullly auto ?
+Then, we compute the mean value of this patch, an we reject as skin all region with a mean value closer than 60 to the skin mean value. The result of the segmentation obtained can be seen in figure \ref{fig:srm-seg}.
+
+
+
+\begin{figure}[h]
+	\begin{subfigure}{0.329\linewidth}			
+		\includegraphics[width=0.99\linewidth]{../results/srm/im-181}	
+		\caption{Original image\\ (type: nevus)}
+		\label{fig:srm-steps-orig}
+	\end{subfigure}
+	\begin{subfigure}{0.329\linewidth}			
+		\includegraphics[width=0.99\linewidth]{../results/srm/srm-181}	  
+		\caption{SRM output (regions replaced by the mean values)}
+		\label{fig:srm-reg}
+	\end{subfigure}
+	\begin{subfigure}{0.329\linewidth}			
+		\includegraphics[width=0.99\linewidth]{../results/srm/srm-segt-181}
+		\caption{Segmentation (red) and ground truth (green)}
+		\label{fig:srm-seg}
+	\end{subfigure}
+	\caption{Post processing steps}
+	\label{fig:srm-steps}
+\end{figure}
+
+
+\subsection{Results}
+
+Average dice index = 0.84\\
+Average jaccard index = 0.74
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{../results/srm/dice-jaccard-srm-2}
+	\caption{Statistical Region Merging : results on melanoma and nevus}
+	\label{fig:srm-melaVSnev}
+\end{figure}
+
+Again, we can observe in figure \ref{fig:srm-melaVSnev} better performances on nevus images. The nevus image number 19, discussed earlier, is also challenging for this method because it is very fragmented and therefore get separated into different regions.
+
+The weak point of this method is the region selection. Instead of simply comparing the mean value of the skin patch to those of the regions, we perform a better texture analysis by including colors, or variance. Another approach could be to select a lesion patch instead of a skin patch and choose similar region. 
 
 \section{Parametric active contours}
 \subsection{Method}
-\paragraph{}  Distance Regularized Level Set Evolution \cite{li2010distance} \tobecompleted{method description}
+\paragraph{} The third method studied here takes the approach of active contour,  Distance Regularized Level Set Evolution \cite{li2010distance} 
+The contour is described as the intersection of a higher dimension Level Set Function (LSF) with the level 0, as expressed in equation \ref{eq:phi}.
+\begin{equation}
+\phi_k(x,y)=0
+\label{eq:phi}
+\end{equation}
+
+The evolution of the curve is then described in \ref{eq:PDE} by the following partial differential equation, or level set evolution equation :
+\begin{equation}
+\frac{\partial \phi}{\partial t} = F|\nabla\phi|
+\label{eq:PDE}
+\end{equation}
+
+To maintain a stable evolution and an accurate numerical computation, we need to keep the LSF smooth, not too steep or too flat. This property is satisfied in the signed distance function where $|\nabla\phi|=1$ (equivalent to a 45 degree angle of the 3D surface in our case). We can see an illustration of the distance function  initialized with 3 points in figure \ref{fig:dist-LSF}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.7\linewidth]{../results/level_set/dist-LSF}
+\caption{Distance Function}
+\label{fig:dist-LSF}
+\end{figure}
+
+The distance regularization proposed in~\cite{li2010distance} helps maintaining this property. It uses an energy functional $\mathcal{E}$ defined in \ref{eq:energy}
+\begin{equation}
+\mathcal{E}(\phi)=\mu\mathcal{R}_p(\phi)+\mathcal{E}_{ext}(\phi)
+\label{eq:energy}
+\end{equation}
+Where $\mu>0$, $\mathcal{E}_{ext}$ is the external energy derived from the gradient of the image, and $\mathcal{R}_p$ is the distance regularization term defined in 
+\begin{equation}
+\mathcal{R}_p(\phi) \stackrel{\Delta}{=} \int_{\Omega}^{}p(|\nabla\phi|)dx
+\end{equation}
+where p is a potential function $p : [0,\infty) \rightarrow R$
+
+To avoid some side effects,~\cite{li2010distance} uses a double-well potential $p=p_2$ that has two minimum points at $s=1$ and $s=0$. This function is explicitly defined in \ref{eq:p}
+\begin{equation}
+p_2(s)= 
+\begin{cases}
+\frac{1}{2 \pi} \sin(2\pi s) \text{ if } s \leq 1 \\
+\frac{1}{2} (s-1)^2 \text{ if } s \geq 1
+\end{cases}
+\label{eq:p}
+\end{equation}
+
+Finally, the Distance Regularized Level Set Evolution (DRLSE) can be expressed as in \ref{eq:DRLSE}. This equation is derived from the variational formulation \ref{eq:energy}.
+\begin{equation}
+\frac{\partial \phi}{\partial t} = \mu \cdot \text{div} (d_p(\nabla\phi)\nabla\phi) - \frac{\partial \mathcal{E}_ext}{\partial\phi} 
+\label{eq:DRLSE}
+\end{equation}
+
 \subsection{Implementation}
-Very sensitive to the initialization of the contour, and to the parameters: hard to tune.
+\subsubsection*{Discretization}
+
+The DRLSE in \ref{eq:DRLSE} is implemented with a finite difference scheme where spatial derivatives are replaced by central difference with a fixed step of $\Delta x = \Delta y = 1$ and the temporal derivative is approximated by the forward difference. We obtain the following equation 
+
+\begin{equation}
+\phi_{i,j}^{k+1}=\phi_{i,j}^k + \Delta t L(\phi_{i,j}^k), \quad \text{with } k=0,1,2,... 
+\end{equation}
+
+For the segmentation, the edge indicator is  given by the function defined in \ref{eq:edgefunc}, where $G_\sigma$ is a gaussian kernel of standard deviation $\sigma$ to reduce noise. g takes small values on edges.
+\begin{equation}
+g \stackrel{\Delta}{=}\frac{1}{1+\nabla G_\sigma \ast I|^2}
+\label{eq:edgefunc}
+\end{equation}
+
+The energy can then be expressed as \ref{eq:energy-impl} :
+\begin{equation}
+\mathcal{E}(\phi)= \mu\mathcal{R}_p(\phi) + \lambda \mathcal{L}_g(\phi) + \alpha\mathcal{A}_g(\phi)
+\label{eq:energy-impl}
+\end{equation}
+$$\mathcal{L}_g(\phi) \stackrel{\Delta}{=}\int_{\omega}g\cdot\delta (\phi)\nabla\phi dx $$
+$$\mathcal{A}_g(\phi)\stackrel{\Delta}{=}\int_{\omega}g\cdot H(-\phi)dx$$
+
+$\delta$ is the Dirac function, approximated by the equation \ref{eq:dirac}, so that $\mathcal{L}_g(\phi)$ computes the integral of $g$ along the line where $\phi = 0$, that is the actual contour used for segmenting the image. This integral is minimized when this contour is located at the boundaries of the lesion, where $g$ takes its smallest values. This component is weighted by the parameter $\lambda$.
+\begin{equation}
+\delta_\epsilon(x)= 
+\begin{cases}
+\frac{1}{2x}[1+\cos(\frac{\pi x}{\epsilon})], \quad if \quad |x| \leq \epsilon \\
+0 \quad if \quad |x| > \epsilon 
+\end{cases}
+\label{eq:dirac}
+\end{equation}
+
+H is the Heaviside function, approximated by the equation \ref{eq:heaviside}, so that $\mathcal{A}_g(\phi)$ computes a weighted area of the region where $\phi(x)<0$. It is used to force the contour to grow or to shrink by changing the value of $\alpha$. Since this paper gives negative values inside the contour and positive values outside, we take positive values of $\alpha$ so that the contour can shrink, with an initial contour placed outside of the lesion. The presence of $g$ in this energy term will slow down the shrinking when we arrive at the boundaries of the lesion.
+
+
+The decision of having a contour initialized outside of the lesion and a shrinking evolution was mainly made to speed up the algorithm : after the initialization, the image was cropped to the bounding box of the initial contour, as we know that the lesion is contained in it.
+
+\begin{equation}
+H_\epsilon(x)= 
+\begin{cases}
+\frac{1}{2}[1+\frac{x}{\epsilon}+\frac{1}{\pi}\sin(\frac{\pi x}{\epsilon})], \quad if \quad |x| \leq \epsilon \\
+1 \quad if \quad |x| > \epsilon \\
+0 \quad if \quad |x| < -\epsilon \\
+\end{cases}
+\label{eq:heaviside}
+\end{equation}
+
+\subsubsection*{Algorithm}
+\begin{itemize}
+	\item Initialization of $\phi$ with $\phi_0$ provided through user input (polyline). 
+	\item Update the LSF : $ \phi_{i,j}^{k+1}=\phi_{i,j}^k + \tau L(\phi_{i,j}^k)$
+	\item Assign values to new pixels 
+	\item Test the termination : stop if the zero crossing points stop varying or $k$ exceed a maximum iteration number, else go to step 2.
+\end{itemize}
+
+\subsubsection*{Parameters}
+The DRLSE algorithm requires several parameters listed below, and proved to be very sensitive the values used. I managed to obtained good results using the following values:
+
+Timestep: $\tau=1$,
+
+Distance regularization: $mu=0.2/\tau= 0.2$, 
+
+Length term $\mathcal{L}_g(\phi)$ coefficient: $\lambda=1$,
+
+Area term $\mathcal{A}_g(\phi)$ coefficient: $\alpha = 5$,
+
+Width of the dirac function: $\epsilon=1.5$,
+
+Maximum number of iterations: $n_{iter,max} = 100$ 
+
+\begin{figure}[h]
+	\centering
+	\begin{subfigure}{0.49\linewidth}			
+		\includegraphics[width=0.99\linewidth]{../results/level_set/im001}
+		\caption{dice: 0.88, jaccard: 0.79}
+		\label{fig:LS-res-001}
+	\end{subfigure}
+	\begin{subfigure}{0.49\linewidth}			
+		\includegraphics[width=0.99\linewidth]{../results/level_set/im127}
+		\caption{dice: 0.88, jaccard: 0.78}
+		\label{fig:LS-res-127}
+	\end{subfigure}
+	\begin{subfigure}{0.49\linewidth}			
+		\includegraphics[width=0.99\linewidth]{../results/level_set/im043}
+		\caption{dice: 0.92, jaccard: 0.85}
+		\label{fig:LS-res-043}
+	\end{subfigure}
+	\begin{subfigure}{0.49\linewidth}			
+		\includegraphics[width=0.99\linewidth]{../results/level_set/im004}
+		\caption{dice: 0.97, jaccard: 0.94}
+		\label{fig:LS-res-004}
+	\end{subfigure}
+	\caption{level set}
+	\label{fig:level-set-results}
+\end{figure}
 
 \subsection{Results}
+Examples of results are shown in figure \ref{fig:level-set-results}. We used only the conversion to grayscale and the hair removal preprocessing (no black frame removal). As we can see, the results are good, especially on difficult images such as \ref{fig:LS-res-127} or \ref{fig:LS-res-004}, with a dice index of 0.88 and 0.97 respectively, where the previous method were unable to give an acceptable result. However, some "easy" images are oversegmented as illustrated in \ref{fig:LS-res-001}, but this can probably be enhanced by a two stages evolution as proposed in~\cite{li2010distance} : after the convergence of the evolution, they et the area coefficient to 0 and compute additional iterations to refine the contour and get closer to the true edges. 
 
-BLABLA dice, jaccard etc
-blabla
-
-What would it take to make this method fully auto ?
+Another way to improve my implementation would be to implement a narrow band computation, so that only a small region around the current contour gets updated on each step, to speed up the algorithm, since despite the image cropping, the evolution is still not very fast. This amelioration was however not implemented and the complete dataset evaluation was not made for this method. Please note that even with a fast algorithm, this method would remain the slowest of the three compared here because of the time used for user input. 
 
 \section{Comparison}
 
 \subsection{Perfomances}
-- dice, jaccards, etc
-- runtime
-- what are the problems for each
-- sensitive to init for the semi auto ?
-- etc : PUT PERFORMANCE DATA ABOUT THE DIFFERENT METHODS
-ETC
+
+As we have seen, the DRLSE provides the best results most of the times, and is especially reliable for difficult images, but its parameters are hard to tune and the segmentation process is slow due to the user input, that must surround the lesion closely enough.
+
+To compare the two other algorithms, we can refer to the figure \ref{fig:otsu-srm-compare} that overlaps the results from the thresholding method and SRM on the dataset. Although they can differ on certain images, the average performance is the same.
+
+The table \ref{tab:method-compare} summarize the advantages and drawbacks of the three methods studied for this project.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\linewidth]{../results/comparison/otsu-srm-compare}
+\caption{Otsu - SRM comparison : dice index\\ The two methods have the same average dice value of 0.84 on the dataset}
+\label{fig:otsu-srm-compare}
+\end{figure}
+
+\begin{tabular}{|c|c|c|c|}
+	\hline
+	 Method & Thresholding & Region & Level Set \\ \hline 
+	\multirow{4}{*}{ Advantages} & simple & simple & Using prior knowledge \\ 
+	& unsupervised & fast & precise segmentation \\
+	& fast & & No critical failure\\
+	& no parameter & & \\ \hline 
+	\multirow{4}{*}{Drawbacks} & lot of processing & Semi-automated & Parameters hard to tune \\ 
+	& & not better than thresholding & slow \\
+	& & & semi-automated \\
+	& & & sensitive to initialization \\ \hline 
+	\label{tab:method-compare}
+\end{tabular} 
+
+The thresholding have roughly the same performances as the SRM algorithm, and is fully automated. Therefore, it may constitute a better choice for lesion segmentation unless better and more adapted processing can improve the SRM results.
+
+On the other and, the Level Set approach is the best one on difficult images but also the slowest. So it could be interesting to have a choice between the thresholding and Level Set algorithm to provide the best results. A user could review the segmentation results of the thresholding and use Level Set as a semi-automated method on difficult images only.
 
 \subsection{Choosing the right method}
 
-\begin{figure}
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=0.6\linewidth]{../results/selection-criterion/otsu-dice-jaccard-eta-plot}
 	\caption{$\eta$ (green), dice (red)\\ Correlation coefficient : R($\eta$, dice)=0.50 }
 	\label{fig:eta-correlation}
 \end{figure}
 
-An interesting development of this comparison would be to have an efficient and easily computable criterion to choose the best method given a particular image. 
+An interesting development of this comparison would be to have an efficient and easily computable criterion to choose automatically the adapted method given a particular image, so that the operator would not have to review all images. In this section we will show that Otsu's separability measure could make a simple, but not perfect, criterion.
 
-\subsubsection{Separability criterion}
+\subsubsection*{Separability criterion}
 
+
+
+To compute the threshold with Otsu's method, we optimize a separability measure $\eta$. We investigated whether there were a correlation between this value and the evaluation metrics, so that it could be used to evaluate the performance of the thresholding algorithm. The results are shown in figure \ref{fig:eta-correlation} and it appears that $\eta$ is correlated to the evaluation metrics with a correlation coefficient of 0.5.
+
+To test this criterion, we determined on a training set a threshold for eta that would ensure a good performance (dice>0.7) for the thresholding method. That could help us to automatically detect good from bad performances on real data and for instance switch to a semi-automatic method in that case. We also wanted to control how many images would have to be rejected. Given the algorithm performances described in section \ref{results-otsu}, we should only drop the 7/42 ()16.7\%) of the dataset where the dice index was lower than 0.7.  
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.6\linewidth]{../results/selection-criterion/eta-dice-drop}
@@ -431,11 +662,7 @@ An interesting development of this comparison would be to have an efficient and 
 	\label{fig:eta-dice-drop}
 \end{figure}
 
-To compute the threshold with Otsu's method, we optimize a separability measure $\eta$. We investigated whether there were a correlation between this value and the evaluation metrics, so that it could be used to evaluate the performance of the thresholding algorithm. The results are shown in figure \ref{fig:eta-correlation} and it appears that $\eta$ is correlated to the evaluation metrics with a correlation coefficient of 0.5.
-
-To test this criterion, we determined on a training set a threshold for eta that would ensure a good performance (dice>0.7) for the thresholding method. That could help us to automatically detect good from bad performances on real data and for instance switch to a semi-automatic method in that case. We also wanted to control how many images would have to be rejected. Given the algorithm performances described in section \ref{results-otsu}, we should only drop the 7/42 ()16.7\%) of the dataset where the dice index was lower than 0.7.  
-
-The figure \ref{fig:eta-dice-drop} shows the evolution of the lowest performance while we iteratively drop the image with the smallest $\eta$ value, ie what we believe to be the worst performance. We compared that to the evolution of the worst performance while dropping the image with the smallest dice index, ie the actual worst performance. To ensure a dice index higher than 0.7 on this training et, we would have to reject all images with $\eta < 0.8$, which represent about 47\% of the set. This rejection rate is high, but if we lower the $\eta$ threshold to 0.7, decreasing the rejection rate to a more acceptable 11\%, the lowest dice index comes down to 0.55. 
+The figure \ref{fig:eta-dice-drop} shows the evolution of the lowest performance while we iteratively drop the image with the smallest $\eta$ value, ie what we believe to be the worst performance. We compared that to the evolution of the worst performance while dropping the image with the smallest dice index, ie the actual worst performance. To ensure a dice index higher than 0.7 on this training et, we would have to reject all images with $\eta < 0.8$, which represent about 47\% of the set. This rejection rate is high, but if we lower the $\eta$ threshold to 0.7, decreasing the rejection rate to a more acceptable 11\%, the lowest dice index accepted as "good" comes down to 0.55. 
 
 Therefore, the selected threshold for $\eta$ is 0.8.
 
@@ -451,26 +678,14 @@ To test how reliable this technique is, we evaluated this 0.8 threshold on a tes
 	\label{fig:test-criterion-accepted}
 \end{figure}
 
-\subsection{Discussion}
-???
-machine learning with eta and other parameters (colorimetry, detection of hair, etc...)
-Of course this would make more sense if all the methods were fully automated, since here an interaction with the user is already needed, we can compute the three methods and give a choice.
-SRM is only semi automated but as we have seen, it is possible to avoid this interaction given some further development, and it has been done in the literature for the SRM method~\cite{celebi_border_2008}. 
+\subsection*{Ground Truth quality}
+The ground truth used was not perfect: it is hard to produce segmentation gold standard, especially in lesion segmentation because of fuzzy borders, color and shape variability and other defaults. In this dataset from ISIC, two different methods of manual segmentation were used and our algorithms were not easily able to perform well for both.
 
 \section*{Conclusion}
-%TODO Conclusion
- Quality of groundtruth : difficult to have a gold standard because of fuzzy borders, etc... here there was a problem because 2 methods of Manual segmentation were used. Also : only one segmentation mask was available, so we can not compare our result with the inter-expert variability.
 
- Complementarity of the different methods
- automatic criterion to decide between the different methods ? (examples : otsu's separability measure does not work, presence of hair, global initial contrast, etc... complicated...). We propose a costly but reliable criterion to ensure acceptable results with the thresholding method.
- 
- Preprocessing is critical
- 
-discuss quality of the method used
+We have shown in this project that the adaptative thresholding can give good result when associated with pre- and post-processing. The SRM method that we implemented would need some improvement to justify the need of a user interaction in the process by a real increase of performance, compared to the thresholding. Level Set is the most reliable method for difficult images, but require tuning many parameters and we have probably not chosen the optimal values, but the drawback is a high runtime and a high cost in terms of user interaction. Therefore it should be only used on difficult images.
 
-
-
-
+We propose a criterion to automatically detect such images using the separability measure used in Otsu's optimal threshold selection. This criterion as a high sensitivity but a lw specificity, so it comes with a high cost of wrongly rejected images. However, a user would only need a short time to flag a rejected image as "acceptable".
 
 \bibliographystyle{plain}
 \bibliography{PRIM-rapport}
