@@ -5,9 +5,13 @@ Three segmentation algorithms are implemented :
 - Statistical Region Merging 
 - Distance Regularized Level Set Evolution
 
-Hair removal, color channel selection from RGB and CIE-XYZ colorspaces and contrast enhancement are used as preprocessing.
+For test, you only need OneImageSegt.m (to have a direct feedback on one image) or segtEvaluation.m (to compute dice and jaccard index on the entire dataset).
+Just press F5 and read the console when inputs are required (sometimes graphic input).
+For parameter tweaking, stick to these two scripts, you should find everything. 
 
-Postprocessing depends on the method. For Otsu : morphological filling, denoising (filtering small regions).
+Preprocessing avvailable : Hair removal, Black frame removal, color channel selection from RGB and CIE-XYZ colorspaces and contrast enhancement.
 
-Data used for this project are available in data/
+Postprocessing available : morphological filling, denoising by CCA (connected component analysis).
+
+Data used for this project are available in data/ and are a sample of the dataset from the ISIC challenge "Skin Lesion Analysis Toward Melanoma Detection", 2017.
 
