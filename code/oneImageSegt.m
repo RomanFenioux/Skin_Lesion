@@ -3,7 +3,8 @@ close all
 
 % choose the number of the image (3 last digits)
 imNum = input('image id (3 digits) : ', 's'); 
-segtMethod = input('segmentation method (otsu, srm, region, levelset): ','s');
+fprintf('region method is not advised... because it is slow\n')
+segtMethod = input('segmentation method (otsu, srm, region, levelset): \n','s');
 
 computeOtsu = strcmp(segtMethod,'otsu');
 computeSrm = strcmp(segtMethod,'srm');
@@ -75,6 +76,7 @@ if computeSrm || compare
     %% post proc : selectionner les bonnes regions
     figure(3);
     imshow(I,[])
+    fprintf('click 2 points that define the top left and bottom right corners of a skin patch\n then press enter\n')
     input=round(ginput(2));  % selectionner patch de peau
     skinpatch=IpreProc(input(1,2):input(2,2),input(1,1):input(2,1));
     skinvalue=mean(skinpatch(:));
@@ -101,7 +103,7 @@ if computeRegion
     imshow(IpreProc)
     [x, y] = ginput(1);
   
-    t=input('enter seed and threshold for region growing (default 0.2)  : ');
+    t=input('enter seed and threshold for region growing (default 0.2)  : \n');
     if numel(t)==0
         t=0.2;
     end
@@ -126,6 +128,7 @@ if computeLevelSet
     c0=2;
     initialLSF = c0*ones(size(IpreProc));
     %% initial LSF from user input
+    fprintf('click to define a polyline around the lesion but not too far away\n then press enter\n')
     figure(1);
     imshow(I)
     input=round(ginput()); 
@@ -216,16 +219,16 @@ end
 %% display
 % display the segmentation and tuth for visual evaluation of the results
 if compare
-    displayResult(IpreProc, T, IsegtOtsu, ISRMSegt)
+    displayResult(I, T, IsegtOtsu, ISRMSegt)
     title(sprintf('comparison between the segmentation methods'))
 elseif computeSrm
-    displayResult(IpreProc, T, ISrmSegt);
+    displayResult(I, T, ISrmSegt);
     title(sprintf('SRM on image %s : dice = %g, jaccard = %g',imNum,dsrm,jsrm))
 elseif computeOtsu
     displayResult(I, T, IsegtOtsu);
     title(sprintf('Otsu Threshold on image %s : dice = %g, jaccard = %g',imNum,dotsu,jotsu))
 elseif computeRegion
-    displayResult(IpreProc, T, IsegtRegion);
+    displayResult(I, T, IsegtRegion);
     title(sprintf('Region Growing on image %s : dice = %g, jaccard = %g',imNum,dregion,jregion))
 elseif computeLevelSet
     displayResult(I, T, IsegtLevelSet);

@@ -1,24 +1,25 @@
 clear all
 close all
 
-%segtMethod = input('segmentation method (otsu or srm): ','s');
-computeOtsu = false; %strcmp(segtMethod,'otsu');
-computeSrm = true; %strcmp(segtMethod,'srm');
-compare = false; % strcmp(segtMethod,'compare');
-melaVsNev=true;
-datasetResult=true;
+% %segtMethod = input('segmentation method (otsu or srm): ','s');
+computeOtsu = strcmp(segtMethod,'otsu');
+computeSrm = strcmp(segtMethod,'srm');
 
-% Preprocessing and postprocessing options
-channel = 'b';
-hair_removal = true;
-compute_blackframe = true;
-clear_border = false;
-compute_filling = true;
-compute_CCA = true;
+%% DISPLAY OPTIONS %%
+melaVsNev=true; % To separate the results between melanoma and nevus
+datasetResult=true; % To display the results on the entire dataset
+
+%% PRE AND POSTPROCESSING OPTIONS
+channel = 'b'; % color channel ('r', 'g' ,'b', 'X', 'v', or 'meanRGB')
+hair_removal = true; % remove hair
+compute_blackframe = true; % avoid segmenting the black frame around the image
+compute_filling = true; % remove holes in the region
+compute_CCA = true; % connected component analysis (removes small islands)
+% clear_border = false; % deprecated, do not use
 
 % inputs 
 % melanoma and nevus are separated to facilitate analysis of the results
-path = '../data/norestriction/'; % either norestriction/ or easysample/ (hairless, no blackframe)
+path = '../data/norestriction/'; % either norestriction/ or easysample/ (sample with easy images)
 nevusList = dir([path 'training/nevus/*.jpg']); % file list (nevus)
 idNevus = cell(1,numel(nevusList));
 for i=1:numel(nevusList)
@@ -59,7 +60,8 @@ for i=1:numel(idList)
     %%%%%%%% PREPROCESSING STAGE %%%%%%%%%%
     [IpreProc, blackM, Ishaved]=preProc(I,channel, hair_removal, compute_blackframe);
 
-    
+    %%%%%%%% SEGMENTATION %%%%%%%%%%
+    % OTSU    
     if computeOtsu
         %% otsu
         % Threshold the image using Otsu's paper : 'threshold' is the optimal threshold.
@@ -69,9 +71,9 @@ for i=1:numel(idList)
         I_seuil = double(IpreProc < threshold)-blackM;
         etaList(i)=eta;
     end
-   
+    % SRM
     if computeSrm 
-        %% Segmentation parameter Q; Q small few segments, Q large many segments
+        %% Segmentation parameter Q; Q small gives few segments, Q gives large many segments
         Qlevel=250;
 
         %% Performing SRM
@@ -157,14 +159,14 @@ if  datasetResult
     F2=figure; 
     plot(diceList,'-s','Color','red')
     hold on
-%     plot(get(gca,'xlim'), [mean(diceList) mean(diceList)],'red'); 
-%     plot(jaccardList,'-d','Color', 'blue')
-%     plot(get(gca,'xlim'), [mean(jaccardList) mean(jaccardList)],'blue');  
-    plot(etaList,'-o','Color', 'green')
-    plot(get(gca,'xlim'), [0.8 0.8],'black'); 
+    plot(get(gca,'xlim'), [mean(diceList) mean(diceList)],'red'); 
+    plot(jaccardList,'-d','Color', 'blue')
+    plot(get(gca,'xlim'), [mean(jaccardList) mean(jaccardList)],'blue');  
+%     plot(etaList,'-o','Color', 'green')
+%     plot(get(gca,'xlim'), [0.8 0.8],'black'); 
     hold off
     axis([0 numel(diceList)+1 0 1])
     title(sprintf('Channel %s - Dice and jaccard indices : d = %g, j = %g',channel,mean(diceList),mean(jaccardList)))
-    legend('dice','eta','eta threshold = 0.8','Location','SouthWest')
+    legend('dice','mean','jaccard', 'mean','Location','SouthWest')
 end
 
